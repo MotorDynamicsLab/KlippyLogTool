@@ -1,8 +1,8 @@
 class ErrorTip:
-    def __init__(self, error, tip):
+    def __init__(self, error=""):
         self.error = error
 
-    def get_newest_error(log):
+    def get_newest_error(self, log):
         target_str = "Reactor garbage collection:"
         start_index = log.rfind(target_str)
 

@@ -6,7 +6,23 @@ class LogStats:
     def __init__(self, log_path):
         self.log_path = log_path
 
-    def __parse_stats_info(stats_string):
+    def __generate_stats_list(self):
+        self.stats_list = []
+        try:
+            with open(self.log_path, "r") as file:
+                for line in file:
+                    if line.startswith("Stats"):
+                        self.stats_list.append(line.strip())
+        except FileNotFoundError:
+            return "错误: 文件未找到"
+
+    def open_log_file(self):
+        self.__generate_stats_list()
+
+    def get_log_info(self):
+        return self
+
+    def __parse_stats_info(self, stats_string):
         # Use regular expressions to find all key-value pairs, including stats values
         pattern = r"(Stats)\s([\d\.]+)|(\S+)=([\d\.]+)"
         matches = re.findall(pattern, stats_string)
@@ -22,20 +38,8 @@ class LogStats:
                 stats_dict[key].append(value)
         return stats_dict
 
-    def __generate_stats_list(self):
-        out = []
-        try:
-            with open(self.log_path, "r") as file:
-                for line in file:
-                    if line.startswith("Stats"):
-                        out.append(line.strip())
-            return out
-        except FileNotFoundError:
-            return "错误: 文件未找到"
-
     def get_stats_dicts(self):
-        list = self.__generate_stats_list()
-        line_dicts = []
-        for line in list:
-            line_dicts.append(self.__parse_stats_info(line))
-        return line_dicts
+        list_dict = []
+        for stats_line in self.stats_list:
+            list_dict.append(self.__parse_stats_info(stats_line))
+        return list_dict
