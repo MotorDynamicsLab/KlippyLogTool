@@ -62,7 +62,7 @@ class LogKlipper:
                 return middle_content
         return "警告: 未找到配置"  # todo，错误信息统一由类返回
 
-    def save_config(self, cfg, save_path="klipper.cfg"):
+    def save_to_file(self, cfg, save_path="out\klipper.cfg"):
         with open(save_path, "w") as file:
             file.write(cfg)
 
@@ -97,6 +97,10 @@ class LogStats:
                 stats_dict[key].append(value)
         return stats_dict
 
+    def get_stats_info(self):
+        self.__generate_stats_list()
+        return "\n".join(self.stats_list)
+
     def get_stats_dicts(self):
         self.__generate_stats_list()
 
@@ -104,3 +108,7 @@ class LogStats:
         for stats_line in self.stats_list:
             list_dict.append(self.__parse_stats_info(stats_line))
         return list_dict
+
+    def save_to_file(self, info, save_path="out\stats.cfg"):
+        with open(save_path, "w") as file:
+            file.write(info)
