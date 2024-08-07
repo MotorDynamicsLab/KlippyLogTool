@@ -2,31 +2,6 @@ import re
 from collections import defaultdict
 
 
-class LogErrorMsg:
-    def __init__(self, log) -> None:
-        self.log = log
-
-    def get_newest_error(self):
-        target_str = "Reactor garbage collection:"
-        start_index = self.log.rfind(target_str)
-
-        err_info = ""
-        offset = 1
-        if start_index != -1:
-            cur_start_index = self.log.find("\n", start_index) + offset
-
-            while True:
-                cur_end_index = self.log.find("\n", cur_start_index)
-                cur_str = self.log[cur_start_index:cur_end_index].strip()
-                err_info += cur_str + "\n"
-                if not cur_str:
-                    break
-                cur_start_index = cur_end_index + offset
-
-            return err_info
-        return "警告: 没有发现错误信息"
-
-
 class LogKlipper:
     def __init__(self, log) -> None:
         self.log = log
@@ -42,6 +17,16 @@ class LogKlipper:
                 ].strip()
                 return middle_content
         return "警告: 未找到配置"  # todo，错误信息统一由类返回
+
+    def get_errors(self):
+        pattern = pattern = (
+            r"(Reactor garbage collection:.*?Dumping send queue 100 messages)"
+        )
+
+        matches = re.findall(pattern, self.log, re.DOTALL)
+        matches = [match.strip() + "\n" for match in matches]
+        result_string = "\n".join(matches)
+        return result_string
 
     @staticmethod
     def save_to_file(cfg, save_path="out/klipper.cfg"):
@@ -78,7 +63,7 @@ class LogStats:
     def __generate_stats_list(self):
         self.stats_list = []
         try:
-            with open(self.file_path, "r") as file:
+            with open(self.file_path, "r", encoding="utf-8") as file:
                 for line in file:
                     if line.startswith("Stats"):
                         self.stats_list.append(line.strip())
@@ -95,6 +80,8 @@ class LogStats:
             target = heater_bed_match.group(1)
             temp = heater_bed_match.group(2)
             out_dicts["heater_bed"] = {"target": target, "temp": temp}
+        else:
+            out_dicts["heater_bed"] = {"target": 0, "temp": 0}
 
         extruder_match = re.search(
             r"extruder:\s*target=(\d+)\s*temp=([\d.]+)", stats_string
@@ -103,11 +90,15 @@ class LogStats:
             target = extruder_match.group(1)
             temp = extruder_match.group(2)
             out_dicts["extruder"] = {"target": target, "temp": temp}
+        else:
+            out_dicts["extruder"] = {"target": 0, "temp": 0}
 
         bytes_retransmit_matches = re.findall(r"bytes_retransmit=(\d+)", stats_string)
         if bytes_retransmit_matches:
             bytes_retransmit_list = [int(value) for value in bytes_retransmit_matches]
-            out_dicts["bytes_retransmit"] = bytes_retransmit_list
+            out_dicts["bytes_retransmit"] = bytes_retransmit_list[0]
+        else:
+            out_dicts["bytes_retransmit"] = 0
 
         return out_dicts
 
@@ -132,26 +123,22 @@ class LogStats:
             i = 0
             min_val = max_val = 0
             list_retransmit = []
-            min_last_val = max_last_val = 0
 
             for dicts in list_dicts:
-                min_last_val = min(
-                    dicts["bytes_retransmit"]
-                )  # Here min_last_val and max_last_val are generally the same value
-                max_last_val = max(dicts["bytes_retransmit"])
+                val = dicts["bytes_retransmit"]
 
-                if min_last_val < min_val:
-                    min_val = min_last_val
+                if val < min_val:
+                    min_val = val
 
-                if max_last_val > max_val:
-                    max_val = max_last_val
+                if val > max_val:
+                    max_val = val
 
                 i += 1
                 if interval == i:
                     i = 0
+                    print()
                     list_retransmit.append(max_val - min_val)
-                    min_val = min_last_val  # Starting from the last result
-                    max_val = max_last_val
+                    max_val = min_val = val  # Starting from the last result
 
             if len(dicts) % interval != 0:
                 list_retransmit.append(max_val - min_val)
@@ -167,7 +154,9 @@ class LogStats:
             extruder_temp_list = []
             bed_temp_list = []
 
+            i = 0
             for dicts in list_dicts:
+                i += 1
                 bed_temp_list.append(
                     (dicts["heater_bed"]["target"], dicts["heater_bed"]["temp"])
                 )
@@ -176,7 +165,7 @@ class LogStats:
                 )
 
             # print(extruder_temp_list)
-            return extruder_temp_list, bed_temp_list
+            return (extruder_temp_list, bed_temp_list)
 
         except Exception as e:
             print("异常：", e)
