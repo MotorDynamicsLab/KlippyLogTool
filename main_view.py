@@ -104,9 +104,9 @@ class ControlPanel(QWidget):
     # 事件处理
     def open_log(self):
         self.file_paths = Utilities.get_file_paths(self)
+        self.plot_canvas.clear(self.plot_data)
 
     def comprehensive_analysis(self):
-        self.plot_canvas.clear(self.plot_data)
 
         if len(self.file_paths) > 0:
             log = ""
