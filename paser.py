@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import mplcursors
 
 if __name__ == "__main__":
-    file_path = "./logs/klippy3.log"
+    file_path = "./logs/klippy11.log"
 
     log = ""
     with open(file_path, "r", encoding="utf-8") as file:
@@ -17,15 +17,11 @@ if __name__ == "__main__":
     cfg.save_to_file(cfg.get_errors(), "out/error.txt")
 
     # 保存到文件
-    stats = LogStats(file_path)
+    stats = LogStats(log)
     list_dicts = stats.get_stats_dicts()
-    stats.save_to_file(stats.get_stats_info())
+    LogKlipper.save_to_file(stats.get_stats_info(), "out/stats.cfg")
 
     # 解析out的文件
-    stats_out_path = "./out/stats.cfg"
-    stats = LogStats(stats_out_path)
-    list_dicts = stats.get_stats_dicts()
-
     list_retransmit = stats.get_bytes_retransmit_incremental_list(100, list_dicts)
 
     # 画图
@@ -41,6 +37,7 @@ if __name__ == "__main__":
     )
     mplcursors.cursor([line], hover=True)
 
+    #############################################
     extruder_temp_list, bed_temp_list = stats.get_target_temp_list(list_dicts)
     target_extruder_list = [t[0] for t in extruder_temp_list]
     temp_extruder_list = [t[1] for t in extruder_temp_list]

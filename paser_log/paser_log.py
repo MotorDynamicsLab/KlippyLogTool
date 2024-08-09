@@ -57,22 +57,16 @@ class LogTemp:
 
 
 class LogStats:
-    def __init__(self, file_path) -> None:
-        self.file_path = file_path
+    def __init__(self, log) -> None:
+        self.log = log
 
     def __generate_stats_list(self):
         self.stats_list = []
-        try:
-            with open(self.file_path, "r", encoding="utf-8") as file:
-                for line in file:
-                    if line.startswith("Stats"):
-                        self.stats_list.append(line.strip())
-        except FileNotFoundError:
-            return "错误: 文件未找到"
+        lines = self.log.split("\n")
+        self.stats_list = [line for line in lines if line.startswith("Stats")]
 
     def __parse_stats_key_info(self, stats_string):
         out_dicts = {}
-
         heater_bed_match = re.search(
             r"heater_bed:\s*target=(\d+)\s*temp=([\d.]+)", stats_string
         )
@@ -96,9 +90,9 @@ class LogStats:
         bytes_retransmit_matches = re.findall(r"bytes_retransmit=(\d+)", stats_string)
         if bytes_retransmit_matches:
             bytes_retransmit_list = [int(value) for value in bytes_retransmit_matches]
-            out_dicts["bytes_retransmit"] = bytes_retransmit_list[0]
+            out_dicts["bytes_retransmit"] = bytes_retransmit_list
         else:
-            out_dicts["bytes_retransmit"] = 0
+            out_dicts["bytes_retransmit"] = [0]
 
         return out_dicts
 
@@ -114,31 +108,31 @@ class LogStats:
             list_dict.append(self.__parse_stats_key_info(stats_line))
         return list_dict
 
-    def save_to_file(self, info, save_path="out/stats.cfg"):
-        with open(save_path, "w") as file:
-            file.write(info)
-
     def get_bytes_retransmit_incremental_list(self, interval, list_dicts):
         try:
             i = 0
             min_val = max_val = 0
+            min_last_val = max_last_val = 0
             list_retransmit = []
 
             for dicts in list_dicts:
-                val = dicts["bytes_retransmit"]
+                min_last_val = min(
+                    dicts["bytes_retransmit"]
+                )  # Here min_last_val and max_last_val are generally the same value
+                max_last_val = max(dicts["bytes_retransmit"])
 
-                if val < min_val:
-                    min_val = val
+                if min_last_val < min_val:
+                    min_val = min_last_val
 
-                if val > max_val:
-                    max_val = val
+                if max_last_val > max_val:
+                    max_val = max_last_val
 
                 i += 1
                 if interval == i:
                     i = 0
-                    print()
                     list_retransmit.append(max_val - min_val)
-                    max_val = min_val = val  # Starting from the last result
+                    min_val = min_last_val  # Starting from the last result
+                    max_val = max_last_val  # Starting from the last result
 
             if len(dicts) % interval != 0:
                 list_retransmit.append(max_val - min_val)
@@ -147,7 +141,7 @@ class LogStats:
             return list_retransmit
 
         except Exception as e:
-            print("异常：", e)
+            print("异常 get_bytes_retransmit_incremental_list：", e)
 
     def get_target_temp_list(self, list_dicts):
         try:
