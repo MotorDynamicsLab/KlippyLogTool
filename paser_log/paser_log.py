@@ -19,14 +19,25 @@ class LogKlipper:
         return "警告: 未找到配置"  # todo，错误信息统一由类返回
 
     def get_errors(self):
-        pattern = pattern = (
-            r"(Reactor garbage collection:.*?Dumping send queue 100 messages)"
-        )
 
-        matches = re.findall(pattern, self.log, re.DOTALL)
-        matches = [match.strip() + "\n" for match in matches]
-        result_string = "\n".join(matches)
-        return result_string
+        start_str = r"Stats "
+        end_str = r"Reactor garbage collection:"
+        result = []
+        reactor_start_index = reactor_end_index = 0
+
+        while True:
+            reactor_end_index = self.log.find(end_str, reactor_end_index)
+            if reactor_end_index != -1:
+                reactor_start_index = self.log.rfind(
+                    start_str, reactor_start_index, reactor_end_index
+                )
+                result.append(self.log[reactor_start_index:reactor_end_index])
+                reactor_start_index = reactor_end_index
+                reactor_end_index += 100
+            else:
+                break
+
+        return "\n######################\n\n".join(result)
 
     @staticmethod
     def save_to_file(cfg, save_path="out/klipper.cfg"):

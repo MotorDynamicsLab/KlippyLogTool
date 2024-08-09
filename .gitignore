@@ -2,3 +2,4 @@
 /out/*
 /logs/*
 /model/__pycache__
+/.tool

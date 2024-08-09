@@ -61,7 +61,7 @@ class ControlPanel(QWidget):
         super().__init__()
 
         self.plot_data = []
-        self.file_paths = ["logs/klippy.log"]
+        self.file_paths = ["logs/klippy8.log"]
 
         self.viewModel = MainViewModel()
         grid_layout = QGridLayout()
