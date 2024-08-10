@@ -14,7 +14,7 @@ if __name__ == "__main__":
     cfg = LogKlipper(log)
     klipper_cfg = cfg.extract_newest_config()
     cfg.save_to_file(klipper_cfg)
-    cfg.save_to_file(cfg.get_errors(), "out/error.txt")
+    cfg.save_to_file(cfg.get_stats_shucdown_info(), "out/error.txt")
 
     # 保存到文件
     stats = LogStats(log)

@@ -18,8 +18,12 @@ class LogKlipper:
                 return middle_content
         return "警告: 未找到配置"  # todo，错误信息统一由类返回
 
-    def get_errors(self):
+    def get_error_str(self):
+        lines = self.log.split("\n")
+        error_lines = [line for line in lines if "Got error" in line]
+        return "\n".join(error_lines)
 
+    def get_stats_shucdown_info(self):
         start_str = r"Stats "
         end_str = r"Reactor garbage collection:"
         result = []
@@ -37,7 +41,7 @@ class LogKlipper:
             else:
                 break
 
-        return "\n######################\n\n".join(result)
+        return "\n######################\n".join(result)
 
     @staticmethod
     def save_to_file(cfg, save_path="out/klipper.cfg"):

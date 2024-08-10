@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
 from paser_log.paser_log import LogKlipper, LogStats
 import pandas as pd
+import subprocess
+import sys
 
 
 class Utilities:
@@ -25,6 +27,18 @@ class Utilities:
         with open(save_path, "w") as file:
             file.write(cfg)
 
+    @staticmethod
+    def open_file_or_dir(path):
+        if sys.platform.startswith("win"):
+            # Windows
+            subprocess.Popen(["start", "", path], shell=True)
+        elif sys.platform.startswith("darwin"):
+            # macOS
+            subprocess.Popen(["open", path])
+        else:
+            # Linux
+            subprocess.Popen(["xdg-open", path])
+
 
 class PaserLog:
     def __init__(self, log):
@@ -35,14 +49,22 @@ class PaserLog:
     def paser_cfg(self):
         cfg_str = self.cfg.extract_newest_config()
         Utilities.save_to_file(cfg_str, save_path="out/klipper.cfg")
+        return cfg_str
+
+    def paser_shucdown_info(self):
+        stats_str = self.cfg.get_stats_shucdown_info()
+        Utilities.save_to_file(stats_str, save_path="out/shucdown_info.txt")
+        return stats_str
 
     def paser_error(self):
-        error_str = self.cfg.get_errors()
+        error_str = self.cfg.get_error_str()
         Utilities.save_to_file(error_str, save_path="out/error.txt")
+        return error_str
 
     def paser_stats(self):
         stats_str = self.stats.get_stats_info()
-        Utilities.save_to_file(stats_str, save_path="out/stats.cfg")
+        Utilities.save_to_file(stats_str, save_path="out/stats.txt")
+        return stats_str
 
     # 分析并产生图表
     def analysis_bytes_retransmit(self, intervel):
@@ -64,7 +86,7 @@ class PaserLog:
             {
                 "x": x,
                 "y": list_retransmit,
-                "label": "",
+                "label": "value of change",
                 "linestyle": "-",
                 "color": "b",
             },
@@ -152,12 +174,21 @@ class MainViewModel:
     def __init__(self):
         pass
 
+    def get_error_str(self, log):
+        self.paser = PaserLog(log)
+        return self.paser.paser_error()
+
     def output_analysis_result(self, log):
         if log != "":
             self.paser = PaserLog(log)
             self.paser.paser_cfg()
-            self.paser.paser_error()
             self.paser.paser_stats()
+            self.paser.paser_error()
+            self.paser.paser_shucdown_info()
+
+    def output_cfg(self, log):
+        if log != "":
+            self.paser.paser_cfg()
 
     def comprehensive_analysis(self, log):
         subplot_data = []
@@ -167,4 +198,11 @@ class MainViewModel:
             subplot_data.append(paser.analysis_bed_temp())
             subplot_data.append(paser.analysis_extruder_temp())
 
+        return subplot_data
+
+    def loss_packet_analysis(self, log):
+        subplot_data = []
+        if log != "":
+            paser = PaserLog(log)
+            subplot_data.append(paser.analysis_bytes_retransmit(100))
         return subplot_data

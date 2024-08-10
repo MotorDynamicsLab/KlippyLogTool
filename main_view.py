@@ -5,10 +5,15 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QPushButton,
     QMessageBox,
+    QMainWindow,
+    QVBoxLayout,
+    QAction,
+    QTextEdit,
+    QScrollArea,
 )
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-
+import os
 
 import mplcursors
 from model.main_model import MainViewModel, Utilities
@@ -61,7 +66,7 @@ class ControlPanel(QWidget):
         super().__init__()
 
         self.plot_data = []
-        self.file_paths = ["logs/klippy8.log"]
+        self.file_paths = ["logs/klippy.log"]
 
         self.viewModel = MainViewModel()
         grid_layout = QGridLayout()
@@ -85,11 +90,13 @@ class ControlPanel(QWidget):
         grid_layout.addWidget(self.loss_packet_monitor_btn, 1, 2)
 
         # 剩下的位置放一个画布容器
-        self.plot_canvas = PlotCanvas(self, width=5, height=4)
-        grid_layout.addWidget(self.plot_canvas, 2, 0, 1, 3)
+        self.container = QWidget(self)
+        grid_layout.addWidget(self.container, 2, 0, 1, 3)
+
+        self.container_layout = QVBoxLayout(self.container)  # 临时借用的容器布局
+        # self.plot_canvas = PlotCanvas(self, width=5, height=4)
 
         self.setLayout(grid_layout)
-        self.resize(600, 400)
 
     # 功能函数
     @staticmethod
@@ -101,37 +108,91 @@ class ControlPanel(QWidget):
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
 
+    def clear_container(self):
+        for i in reversed(range(self.container_layout.count())):
+            widget = self.container_layout.itemAt(i).widget()
+            if widget is not None:
+                widget.deleteLater()
+
+    def save_some_files(self, only_cfg=False):
+        log = ""
+        with open(self.file_paths[0], "r", encoding="utf-8") as file:
+            log = file.read()
+
+        if only_cfg:
+            self.viewModel.output_analysis_result(log)
+        else:
+            self.viewModel.output_cfg(log)
+
     # 事件处理
     def open_log(self):
         self.file_paths = Utilities.get_file_paths(self)
         self.plot_canvas.clear(self.plot_data)
 
     def comprehensive_analysis(self):
+        self.clear_container()
+        self.plot_canvas = PlotCanvas(self, width=5, height=4)
+        self.container_layout.addWidget(self.plot_canvas)
 
         if len(self.file_paths) > 0:
             log = ""
             with open(self.file_paths[0], "r", encoding="utf-8") as file:
                 log = file.read()
 
-            self.viewModel.output_analysis_result(log)
             self.plot_data = self.viewModel.comprehensive_analysis(log)
             self.plot_canvas.plot_subplots(self.plot_data)
         else:
             ControlPanel.show_error_msg("未打开log文件")
 
     def loss_packet_analysis(self):
-        pass
+        self.clear_container()
+        self.plot_canvas = PlotCanvas(self, width=5, height=3)
+
+        # 变量量图表
+        log = ""
+        if len(self.file_paths) > 0:
+            with open(self.file_paths[0], "r", encoding="utf-8") as file:
+                log = file.read()
+
+            self.plot_data = self.viewModel.loss_packet_analysis(log)
+            self.plot_canvas.plot_subplots(self.plot_data)
+        else:
+            ControlPanel.show_error_msg("未打开log文件")
+            return
+
+        self.container_layout.addWidget(self.plot_canvas)
+
+        # 添加文本框到容器
+        self.text_edit = QTextEdit(self)
+        self.text_edit.setPlainText(self.viewModel.get_error_str(log))
+        self.text_edit.setReadOnly(True)
+
+        # 创建滚动区域
+        scroll_area = QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(self.text_edit)
+
+        self.container_layout.addWidget(scroll_area)
 
     def loss_packet_monitor(self):
         pass
 
 
-class MainPanel(QWidget):
+class MainPanel(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.setWindowTitle("log分析工具")
+        self.resize(800, 800)
+
+        self.menu_init()
+
+        # 创建中心小部件
+        central_widget = QWidget(self)
+        self.setCentralWidget(central_widget)
+
         # 创建主布局
-        grid_layout = QGridLayout()
+        grid_layout = QGridLayout(central_widget)
 
         # 创建保存子图数据的列表
         self.plot_data = []
@@ -139,12 +200,38 @@ class MainPanel(QWidget):
         # 创建ControlPanel实例
         self.control_panel = ControlPanel()
 
-        # 将ControlPanel
+        # 将ControlPanel添加到布局
         grid_layout.addWidget(self.control_panel, 0, 0, 1, 1)
 
-        self.setLayout(grid_layout)
-        self.setWindowTitle("Subplot Example")
-        self.resize(600, 600)
+    def menu_init(self):
+        self.menu_bar = self.menuBar()
+        file_menu = self.menu_bar.addMenu("文件")
+
+        # 创建“保存分析结果”选项
+        action = QAction("打开结果", self)
+        action.triggered.connect(self.save_result)  # 连接到保存文件的方法
+        file_menu.addAction(action)
+
+        # 创建保存配置文件
+        action = QAction("打开klipper.cfg", self)
+        action.triggered.connect(self.open_cfg_file)  # 连接到保存文件的方法
+        file_menu.addAction(action)
+
+        # 退出应用
+        action = QAction("退出", self)
+        action.triggered.connect(self.exit_app)  # 连接到保存文件的方法
+        file_menu.addAction(action)
+
+    def save_result(self):
+        self.control_panel.save_some_files()
+        Utilities.open_file_or_dir("out")
+
+    def open_cfg_file(self):
+        self.control_panel.save_some_files(True)
+        Utilities.open_file_or_dir("out/klipper.cfg")
+
+    def exit_app(self):
+        QApplication.quit()
 
 
 if __name__ == "__main__":
