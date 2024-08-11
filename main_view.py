@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
     QTextEdit,
     QScrollArea,
     QLabel,
-    QSizePolicy,
+    QInputDialog,
 )
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -188,7 +188,7 @@ class ControlPanel(QWidget):
             text_label.setStyleSheet("color: red;")
             self.container_layout.addWidget(text_label)
 
-            self.plot_canvas = PlotCanvas(self, width=5, height=3)
+            self.plot_canvas = PlotCanvas(self, width=5, height=8)
             self.convas_gird.addWidget(self.plot_canvas, 0, 1)
             self.container_layout.addWidget(canvas_widget)
 
@@ -286,6 +286,27 @@ class MainPanel(QMainWindow):
         action = QAction("退出", self)
         action.triggered.connect(self.exit_app)  # 连接到保存文件的方法
         file_menu.addAction(action)
+
+        # 配置
+        file_menu = self.menu_bar.addMenu("配置")
+        file_menu.aboutToShow.connect(self.show_input_dialog)
+
+        # 其他
+        file_menu = self.menu_bar.addMenu("关于")
+        file_menu.aboutToShow.connect(self.show_popup)
+
+    # 事件
+    def show_input_dialog(self):
+        # Show an input dialog to get user input
+        text, ok = QInputDialog.getText(self, "Input Dialog", "Enter a variable value:")
+
+        if ok and text:
+            # If the user clicked OK and entered something
+            pass
+
+    def show_popup(self):
+        # Show a message box when the action is triggered
+        QMessageBox.information(self, "Information", "You clicked 'Open'!")
 
     def save_result(self):
         self.control_panel.save_some_files()
