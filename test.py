@@ -1,195 +1,201 @@
 import sys
+import json
 from PyQt5.QtWidgets import (
     QApplication,
-    QWidget,
-    QGridLayout,
-    QPushButton,
-    QVBoxLayout,
+    QMainWindow,
+    QAction,
     QMessageBox,
+    QDialog,
+    QVBoxLayout,
+    QLineEdit,
+    QPushButton,
+    QMenuBar,
 )
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import numpy as np
-from matplotlib.gridspec import GridSpec
-import mplcursors
+from PyQt5.QtCore import Qt
+
+# Constants for languages
+LANGUAGES = {
+    "en": {
+        "title": "Input Dialog Example",
+        "file_menu": "File",
+        "open": "Open",
+        "exit": "Exit",
+        "edit_menu": "Edit",
+        "sub_menu": "More Options",
+        "sub_sub_menu": "Sub Options",
+        "input_prompt": "Enter a numeric value:",
+        "input_received": "Input Received",
+        "input_warning": "Please enter a valid numeric value.",
+        "about": "About",
+        "about_text": "This is an example application to demonstrate language switching and input dialogs.",
+    },
+    "zh": {
+        "title": "输入对话框示例",
+        "file_menu": "文件",
+        "open": "打开",
+        "exit": "退出",
+        "edit_menu": "编辑",
+        "sub_menu": "更多选项",
+        "sub_sub_menu": "子选项",
+        "input_prompt": "输入一个数字值:",
+        "input_received": "输入已接收",
+        "input_warning": "请输入有效的数字值。",
+        "about": "关于",
+        "about_text": "这是一个示例应用程序，用于演示语言切换和输入对话框。",
+    },
+}
 
 
-class PlotCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi)
-        super().__init__(self.fig)
-        self.setParent(parent)
-        self.axes = []
-
-    def clear(self):
-        self.fig.clear()
-        self.axes = []
-
-    def plot_subplots(self, plot_data):
-        self.clear()
-        gs = GridSpec(2, 2, figure=self.fig)  # 2行2列的GridSpec布局
-
-        # 第一个子图，跨第一行的所有列
-        ax1 = self.fig.add_subplot(gs[0, :])
-        ax1.plot(plot_data[0]["x"], plot_data[0]["y"], label=plot_data[0]["label"])
-        ax1.set_title(plot_data[0]["title"])
-        ax1.set_xlabel(plot_data[0]["xlabel"])
-        ax1.set_ylabel(plot_data[0]["ylabel"])
-        ax1.legend()
-        self.axes.append(ax1)
-
-        # 第二个子图，占第二行第一列
-        ax2 = self.fig.add_subplot(gs[1, 0])
-        ax2.plot(plot_data[1]["x"], plot_data[1]["y"], label=plot_data[1]["label"])
-        ax2.set_title(plot_data[1]["title"])
-        ax2.set_xlabel(plot_data[1]["xlabel"])
-        ax2.set_ylabel(plot_data[1]["ylabel"])
-        ax2.legend()
-        self.axes.append(ax2)
-
-        # 第三个子图，占第二行第二列
-        ax3 = self.fig.add_subplot(gs[1, 1])
-        ax3.plot(plot_data[2]["x"], plot_data[2]["y"], label=plot_data[2]["label"])
-        ax3.set_title(plot_data[2]["title"])
-        ax3.set_xlabel(plot_data[2]["xlabel"])
-        ax3.set_ylabel(plot_data[2]["ylabel"])
-        ax3.legend()
-        self.axes.append(ax3)
-
-        # 为所有子图启用mplcursors显示坐标值
-        mplcursors.cursor(self.axes)
-
-        self.draw()
+# Function to load language from a JSON file
+def load_language():
+    try:
+        with open("settings.json", "r") as f:
+            settings = json.load(f)
+            return settings.get("language", "en")  # Default to English
+    except FileNotFoundError:
+        return "en"  # Default to English
 
 
-class ControlPanel(QWidget):
-    def __init__(self, plot_data, plot_canvas):
-        super().__init__()
-
-        self.plot_data = plot_data
-        self.plot_canvas = plot_canvas
-
-        # 创建布局
-        layout = QVBoxLayout()
-
-        # 创建按钮并连接信号槽
-        self.button3 = QPushButton("Generate Sine Wave")
-        self.button4 = QPushButton("Generate Cosine Wave")
-        self.button5 = QPushButton("Generate Linear")
-        self.buttonA = QPushButton("Display Combined Plot")
-
-        self.button3.clicked.connect(self.generate_sine_wave)
-        self.button4.clicked.connect(self.generate_cosine_wave)
-        self.button5.clicked.connect(self.generate_linear)
-        self.buttonA.clicked.connect(self.display_combined_plot)
-
-        # 将按钮添加到布局
-        layout.addWidget(self.button3)
-        layout.addWidget(self.button4)
-        layout.addWidget(self.button5)
-        layout.addWidget(self.buttonA)
-
-        self.setLayout(layout)
-
-    def show_error_message(self, error_message):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Critical)
-        msg.setText(error_message)
-        msg.setWindowTitle("Error")
-        msg.setStandardButtons(QMessageBox.Ok)
-        msg.exec_()
-
-    def generate_sine_wave(self):
-        try:
-            t = np.linspace(0, 2 * np.pi, 100)
-            y = np.sin(t)
-            self.plot_data.append(
-                {
-                    "x": t,
-                    "y": y,
-                    "label": "Sine Wave",
-                    "title": "Sine Wave Plot",
-                    "xlabel": "Time (s)",
-                    "ylabel": "Amplitude",
-                }
-            )
-            print("Sine wave generated")
-        except Exception as e:
-            self.show_error_message(str(e))
-
-    def generate_cosine_wave(self):
-        try:
-            t = np.linspace(0, 2 * np.pi, 100)
-            y = np.cos(t)
-            self.plot_data.append(
-                {
-                    "x": t,
-                    "y": y,
-                    "label": "Cosine Wave",
-                    "title": "Cosine Wave Plot",
-                    "xlabel": "Time (s)",
-                    "ylabel": "Amplitude",
-                }
-            )
-            print("Cosine wave generated")
-        except Exception as e:
-            self.show_error_message(str(e))
-
-    def generate_linear(self):
-        try:
-            t = np.linspace(0, 10, 100)
-            y = 2 * t + 1
-            self.plot_data.append(
-                {
-                    "x": t,
-                    "y": y,
-                    "label": "Linear",
-                    "title": "Linear Plot",
-                    "xlabel": "X-axis",
-                    "ylabel": "Y-axis",
-                }
-            )
-            print("Linear plot generated")
-        except Exception as e:
-            self.show_error_message(str(e))
-
-    def display_combined_plot(self):
-        try:
-            if len(self.plot_data) < 3:
-                raise ValueError("You need to generate at least 3 plots.")
-            self.plot_canvas.plot_subplots(self.plot_data)
-            print("Combined plot displayed")
-        except Exception as e:
-            self.show_error_message(str(e))
+# Function to save language to a JSON file
+def save_language(lang):
+    with open("settings.json", "w") as f:
+        json.dump({"language": lang}, f)
 
 
-class MainWindow(QWidget):
+class InputDialog(QDialog):
+    def __init__(self, parent=None, language="en"):
+        super().__init__(parent)
+        self.setWindowTitle(LANGUAGES[language]["input_prompt"])
+
+        # Create a layout
+        layout = QVBoxLayout(self)
+
+        # Create a QLineEdit with a double validator
+        self.line_edit = QLineEdit(self)
+        self.line_edit.setPlaceholderText(LANGUAGES[language]["input_prompt"])
+        layout.addWidget(self.line_edit)
+
+        # Create OK and Cancel buttons
+        ok_button = QPushButton("OK", self)
+        ok_button.clicked.connect(self.accept)  # Accept the dialog
+        layout.addWidget(ok_button)
+
+        cancel_button = QPushButton("Cancel", self)
+        cancel_button.clicked.connect(self.reject)  # Reject the dialog
+        layout.addWidget(cancel_button)
+
+    def get_value(self):
+        return self.line_edit.text()  # Return the text from the QLineEdit
+
+
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # 创建主布局
-        grid_layout = QGridLayout()
+        self.language = load_language()  # Load the language setting
+        self.setWindowTitle(LANGUAGES[self.language]["title"])
+        self.setGeometry(100, 100, 400, 300)
 
-        # 创建PlotCanvas实例
-        self.plot_canvas = PlotCanvas(self, width=5, height=4)
+        # Create a menu bar
+        menu_bar = self.menuBar()
 
-        # 创建保存子图数据的列表
-        self.plot_data = []
+        # Create a language menu
+        language_menu = menu_bar.addMenu("Language")
 
-        # 创建ControlPanel实例
-        self.control_panel = ControlPanel(self.plot_data, self.plot_canvas)
+        # Add language options
+        english_action = QAction("English", self, checkable=True)
+        english_action.setChecked(self.language == "en")
+        english_action.triggered.connect(self.set_language_en)
+        language_menu.addAction(english_action)
 
-        # 将ControlPanel和PlotCanvas添加到布局
-        grid_layout.addWidget(self.control_panel, 0, 0, 1, 1)
-        grid_layout.addWidget(self.plot_canvas, 1, 0, 1, 1)
+        chinese_action = QAction("Chinese", self, checkable=True)
+        chinese_action.setChecked(self.language == "zh")
+        chinese_action.triggered.connect(self.set_language_zh)
+        language_menu.addAction(chinese_action)
 
-        self.setLayout(grid_layout)
-        self.setWindowTitle("Subplot Example")
-        self.resize(600, 600)
+        # Create a file menu
+        self.file_menu = menu_bar.addMenu(LANGUAGES[self.language]["file_menu"])
+
+        # Create an action with no submenus
+        open_action = QAction(LANGUAGES[self.language]["open"], self)
+        open_action.triggered.connect(self.show_input_dialog)
+        self.file_menu.addAction(open_action)
+
+        # Create another action with no submenus
+        exit_action = QAction(LANGUAGES[self.language]["exit"], self)
+        exit_action.triggered.connect(self.close)  # Close the application
+        self.file_menu.addAction(exit_action)
+
+        # Create an edit menu with submenus
+        edit_menu = menu_bar.addMenu(LANGUAGES[self.language]["edit_menu"])
+
+        # Submenu
+        more_options_menu = edit_menu.addMenu(LANGUAGES[self.language]["sub_menu"])
+
+        # Sub-submenu
+        sub_options_menu = more_options_menu.addMenu(
+            LANGUAGES[self.language]["sub_sub_menu"]
+        )
+        sub_option1 = QAction("Sub Option 1", self)
+        sub_option2 = QAction("Sub Option 2", self)
+        sub_options_menu.addAction(sub_option1)
+        sub_options_menu.addAction(sub_option2)
+
+        # Create an About menu item
+        about_action = QAction(LANGUAGES[self.language]["about"], self)
+        about_action.triggered.connect(self.show_about_dialog)
+        menu_bar.addAction(about_action)
+
+    def show_input_dialog(self):
+        dialog = InputDialog(self, self.language)
+        if dialog.exec_() == QDialog.Accepted:  # Check if OK was clicked
+            text = dialog.get_value()
+            if text:  # Ensure there's input
+                try:
+                    value = float(text)
+                    self.process_input(value)
+                except ValueError:
+                    QMessageBox.warning(
+                        self,
+                        LANGUAGES[self.language]["input_received"],
+                        LANGUAGES[self.language]["input_warning"],
+                    )
+
+    def process_input(self, value):
+        QMessageBox.information(
+            self, LANGUAGES[self.language]["input_received"], f"You entered: {value}"
+        )
+
+    def show_about_dialog(self):
+        QMessageBox.information(
+            self,
+            LANGUAGES[self.language]["about"],
+            LANGUAGES[self.language]["about_text"],
+        )
+
+    def set_language_en(self):
+        self.language = "en"
+        save_language(self.language)  # Save the selected language
+        self.update_ui()
+
+    def set_language_zh(self):
+        self.language = "zh"
+        save_language(self.language)  # Save the selected language
+        self.update_ui()
+
+    def update_ui(self):
+        self.setWindowTitle(LANGUAGES[self.language]["title"])
+        self.file_menu.setTitle(LANGUAGES[self.language]["file_menu"])
+        self.file_menu.actions()[0].setText(LANGUAGES[self.language]["open"])
+        self.file_menu.actions()[1].setText(LANGUAGES[self.language]["exit"])
+        # Update edit menu
+        self.menuBar().actions()[1].setText(LANGUAGES[self.language]["edit_menu"])
+        self.menuBar().actions()[1].menu().setTitle(
+            LANGUAGES[self.language]["edit_menu"]
+        )
 
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    main_window = MainWindow()
-    main_window.show()
-    sys.exit(app.exec_())
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+sys.exit(app.exec_())

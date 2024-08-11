@@ -319,14 +319,14 @@ class MainPanel(QMainWindow):
     # 功能函数
     def load_language(self):
         try:
-            with open("settings.json", "r") as f:
+            with open("cfg/settings.json", "r") as f:
                 settings = json.load(f)
                 return settings.get("language", "en")  # Default to English
         except FileNotFoundError:
             return "en"  # Default to English
 
     def save_language(self, language):
-        with open("settings.json", "w") as f:
+        with open("cfg/settings.json", "w") as f:
             json.dump({"language": language}, f)
 
     def update_language_ui(self):
