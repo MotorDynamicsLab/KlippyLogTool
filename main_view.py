@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QTextEdit,
     QScrollArea,
     QLabel,
+    QSizePolicy,
 )
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -98,7 +99,7 @@ class ControlPanel(QWidget):
         # 临时借用的容器布局 和 其他
         self.container_layout = QVBoxLayout(self.container)
         self.file_index = 0
-        self.fun = self.comprehensive_analysis
+        self.fun = None
 
         # 图切换按键
         self.button_prev = QPushButton("<")
@@ -145,75 +146,84 @@ class ControlPanel(QWidget):
         self.file_index = 0
 
     def comprehensive_analysis(self):
-        self.fun = self.comprehensive_analysis
-        self.clear_container()
 
-        # 做一个组件，让布局可以包含进去
-        self.canvas_widget = QWidget(self)
-        self.canvas_widget.setLayout(self.convas_gird)
+        if self.fun is None or self.fun != self.comprehensive_analysis:
+            self.fun = self.comprehensive_analysis
+            self.clear_container()
 
-        plot_canvas = PlotCanvas(self, width=5, height=3)
-        self.convas_gird.addWidget(plot_canvas, 0, 1)
+            # 做一个组件，让布局可以包含进去
+            canvas_widget = QWidget(self)
+            canvas_widget.setLayout(self.convas_gird)
+            self.plot_canvas = PlotCanvas(self, width=5, height=8)
+            self.convas_gird.addWidget(self.plot_canvas, 0, 1)
+            self.container_layout.addWidget(canvas_widget)
 
-        if len(self.file_paths) > 0:
-            log = ""
-            with open(self.file_paths[self.file_index], "r", encoding="utf-8") as file:
-                log = file.read()
+        if self.plot_canvas is not None:
+            self.plot_canvas.clear(self.plot_data)
+            if len(self.file_paths) > 0:
+                log = ""
+                with open(
+                    self.file_paths[self.file_index], "r", encoding="utf-8"
+                ) as file:
+                    log = file.read()
 
-            self.plot_data = self.viewModel.comprehensive_analysis(log)
-            plot_canvas.plot_subplots(self.plot_data)
-        else:
-            ControlPanel.show_error_msg("未打开log文件")
-
-        self.container_layout.addWidget(self.canvas_widget)
+                self.plot_data = self.viewModel.comprehensive_analysis(log)
+                self.plot_canvas.plot_subplots(self.plot_data)
+            else:
+                ControlPanel.show_error_msg("未打开log文件")
 
     def loss_packet_analysis(self):
-        self.fun = self.loss_packet_analysis
-        self.clear_container()
 
-        # 做一个组件，让布局可以包含进去
-        self.canvas_widget = QWidget(self)
-        self.canvas_widget.setLayout(self.convas_gird)
+        if self.fun is None or self.fun != self.loss_packet_analysis:
+            self.fun = self.loss_packet_analysis
+            self.clear_container()
 
-        file_path = Path(self.file_paths[self.file_index])
-        text_label = QLabel(self)
-        text_label.setText(file_path.name + " 丢包变化量图")
-        text_label.setStyleSheet("color: red;")
-        self.container_layout.addWidget(text_label)
+            # 做一个组件，让布局可以包含进去
+            canvas_widget = QWidget(self)
+            canvas_widget.setLayout(self.convas_gird)
 
-        plot_canvas = PlotCanvas(self, width=5, height=3)
-        self.convas_gird.addWidget(plot_canvas, 0, 1)
+            file_path = Path(self.file_paths[self.file_index])
+            text_label = QLabel(self)
+            text_label.setText(file_path.name + " 丢包变化量图")
+            text_label.setStyleSheet("color: red;")
+            self.container_layout.addWidget(text_label)
 
-        # 变量量图表
-        log = ""
-        if len(self.file_paths) > 0:
-            with open(self.file_paths[self.file_index], "r", encoding="utf-8") as file:
-                log = file.read()
+            self.plot_canvas = PlotCanvas(self, width=5, height=3)
+            self.convas_gird.addWidget(self.plot_canvas, 0, 1)
+            self.container_layout.addWidget(canvas_widget)
 
-            self.plot_data = self.viewModel.loss_packet_analysis(log)
-            plot_canvas.plot_subplots(self.plot_data)
-        else:
-            ControlPanel.show_error_msg("未打开log文件")
-            return
+            # 添加文本框到容器
+            text_label = QLabel(self)
+            text_label.setText("错误提示")
+            text_label.setStyleSheet("color: red;")
+            self.container_layout.addWidget(text_label)
 
-        self.container_layout.addWidget(self.canvas_widget)
+            self.text_edit = QTextEdit(self)
 
-        # 添加文本框到容器
-        text_label = QLabel(self)
-        text_label.setText("错误提示")
-        text_label.setStyleSheet("color: red;")
-        self.container_layout.addWidget(text_label)
+            self.text_edit.setReadOnly(True)
 
-        text_edit = QTextEdit(self)
-        text_edit.setPlainText(self.viewModel.get_error_str(log))
-        text_edit.setReadOnly(True)
+            # 创建滚动区域
+            scroll_area = QScrollArea(self)
+            scroll_area.setWidgetResizable(True)
+            scroll_area.setWidget(self.text_edit)
 
-        # 创建滚动区域
-        scroll_area = QScrollArea(self)
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setWidget(text_edit)
+            self.container_layout.addWidget(scroll_area)
 
-        self.container_layout.addWidget(scroll_area)
+        if self.plot_canvas is not None:
+            self.plot_canvas.clear(self.plot_data)
+            log = ""
+            if len(self.file_paths) > 0:
+                with open(
+                    self.file_paths[self.file_index], "r", encoding="utf-8"
+                ) as file:
+                    log = file.read()
+
+                self.text_edit.setPlainText(self.viewModel.get_error_str(log))
+                self.plot_data = self.viewModel.loss_packet_analysis(log)
+                self.plot_canvas.plot_subplots(self.plot_data)
+            else:
+                ControlPanel.show_error_msg("未打开log文件")
+                return
 
     def loss_packet_monitor(self):
         pass
