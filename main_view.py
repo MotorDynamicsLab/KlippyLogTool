@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import os
+import json
 
 import mplcursors
 from model.main_model import MainViewModel, Utilities
@@ -250,6 +251,8 @@ class MainPanel(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.language = self.load_language()
+
         self.setWindowTitle("log分析工具")
         self.resize(800, 800)
 
@@ -291,14 +294,58 @@ class MainPanel(QMainWindow):
         file_menu.addAction(action)
 
         # 配置
-        file_menu = self.menu_bar.addMenu("配置")
-        file_menu.aboutToShow.connect(self.show_input_dialog)
+        set_menu = self.menu_bar.addMenu("设置")
+
+        language_menu = set_menu.addMenu("语言")
+        self.english_action = QAction("English", self, checkable=True)
+        self.english_action.setChecked(self.language == "en")
+        self.english_action.triggered.connect(self.set_language_en)
+        language_menu.addAction(self.english_action)
+
+        self.chinese_action = QAction("Chinese", self, checkable=True)
+        self.chinese_action.setChecked(self.language == "zh")
+        self.chinese_action.triggered.connect(self.set_language_zh)
+        language_menu.addAction(self.chinese_action)
+
+        action = QAction("丢包间隔设置", self)
+        action.triggered.connect(self.show_input_dialog)
+        set_menu.addAction(action)
 
         # 其他
-        file_menu = self.menu_bar.addMenu("关于")
-        file_menu.aboutToShow.connect(self.show_popup)
+        about_action = QAction("关于", self)
+        about_action.triggered.connect(self.show_about_dialog)
+        self.menu_bar.addAction(about_action)
+
+    # 功能函数
+    def load_language(self):
+        try:
+            with open("settings.json", "r") as f:
+                settings = json.load(f)
+                return settings.get("language", "en")  # Default to English
+        except FileNotFoundError:
+            return "en"  # Default to English
+
+    def save_language(self, language):
+        with open("settings.json", "w") as f:
+            json.dump({"language": language}, f)
+
+    def update_language_ui(self):
+        # 更新语言字典变量
+        pass
 
     # 事件
+    def set_language_en(self):
+        self.language = "en"
+        self.chinese_action.setChecked(False)
+        self.save_language(self.language)  # Save the selected language
+        self.update_language_ui()
+
+    def set_language_zh(self):
+        self.language = "zh"
+        self.english_action.setChecked(False)
+        self.save_language(self.language)  # Save the selected language
+        self.update_language_ui()
+
     def show_input_dialog(self):
         # Show an input dialog to get user input
         text, ok = QInputDialog.getText(self, "Input Dialog", "Enter a variable value:")
@@ -306,7 +353,7 @@ class MainPanel(QMainWindow):
         if ok and text:
             self.control_panel.set_analysis_intervel(int(text))
 
-    def show_popup(self):
+    def show_about_dialog(self):
         # Show a message box when the action is triggered
         QMessageBox.information(self, "Information", "You clicked 'Open'!")
 
