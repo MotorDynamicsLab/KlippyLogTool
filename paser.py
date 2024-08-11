@@ -1,4 +1,4 @@
-from paser_log.paser_log import LogKlipper, LogStats
+from model.klipper_log import LogKlipper, LogStats
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
