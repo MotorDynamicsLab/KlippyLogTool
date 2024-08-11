@@ -172,6 +172,9 @@ class ControlPanel(QWidget):
             else:
                 ControlPanel.show_error_msg("未打开log文件")
 
+    def set_analysis_intervel(self, intervel):
+        self.viewModel.set_intervel(intervel)
+
     def loss_packet_analysis(self):
 
         if self.fun is None or self.fun != self.loss_packet_analysis:
@@ -301,8 +304,7 @@ class MainPanel(QMainWindow):
         text, ok = QInputDialog.getText(self, "Input Dialog", "Enter a variable value:")
 
         if ok and text:
-            # If the user clicked OK and entered something
-            pass
+            self.control_panel.set_analysis_intervel(int(text))
 
     def show_popup(self):
         # Show a message box when the action is triggered
