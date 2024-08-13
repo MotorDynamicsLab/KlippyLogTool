@@ -1,8 +1,6 @@
 import re
 from collections import defaultdict
 
-from model.common import GlobalComm
-
 
 class LogKlipper:
     def __init__(self, log) -> None:
@@ -18,11 +16,11 @@ class LogKlipper:
                     start_index + len("===== Config file =====") : end_index
                 ].strip()
                 return middle_content
-        return GlobalComm.get_langdic_val("error_tip", "Err_CfgNotFoundError")
+        return "警告: 未找到配置"  # todo，错误信息统一由类返回
 
     def get_error_str(self):
         lines = self.log.split("\n")
-        error_lines = [line for line in lines if "Got " in line]
+        error_lines = [line for line in lines if "Got error" in line]
         return "\n".join(error_lines)
 
     def get_stats_shucdown_info(self):

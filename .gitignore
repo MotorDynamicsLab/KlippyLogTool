@@ -3,3 +3,4 @@
 /logs/*
 /model/__pycache__
 /.tool
+/view/__pycache__/control_view.cpython-39.pyc

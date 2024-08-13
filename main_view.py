@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (
     QAction,
     QInputDialog,
 )
-import json
 
 from model.common import GlobalComm, Utilities
 from view.control_view import ControlPanel
@@ -30,19 +29,9 @@ class MainPanel(QMainWindow):
         self.menu_init()
         self.central_widget_init()
 
-        # 其他数据
-        self.plot_data = []
-
     def central_widget_init(self):
-        central_widget = QWidget(self)
+        central_widget = ControlPanel(self)
         self.setCentralWidget(central_widget)
-
-        # 为主图创建主布局
-        grid_layout = QGridLayout(central_widget)
-
-        # 将ControlPanel添加到布局
-        self.control_panel = ControlPanel()
-        grid_layout.addWidget(self.control_panel, 0, 0, 1, 1)
 
     def menu_init(self):
         self.menu_bar = self.menuBar()
