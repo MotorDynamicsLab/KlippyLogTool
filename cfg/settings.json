@@ -1,0 +1,11 @@
+{
+    "language": "zh", 
+    "loss_interval_set": "100",
+
+    "ref_file_dir": {
+        "cfg_setting": "cfg/settings.json",
+        "klipper_cfg": "out/klipper.cfg",
+        "dir_out": "out",
+        "dir_cfg": "cfg"
+    }
+}

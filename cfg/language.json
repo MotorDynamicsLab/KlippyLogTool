@@ -1,0 +1,78 @@
+
+{
+    "en": {
+        "view" : {
+            "title": "Log analysis tools",
+            "file_menu": "File",
+            "file_menu_out": "",
+            "open": "Open",
+            "exit": "Exit",
+            "edit_menu": "Edit",
+            "sub_menu": "More Options",
+            "sub_sub_menu": "Sub Options",
+            "input_prompt": "Enter a numeric value:",
+            "input_received": "Input Received",
+            "input_warning": "Please enter a valid numeric value.",
+            "about": "About",
+            "about_text": "This is an example application to demonstrate language switching and input dialogs."
+        }
+    },
+    "zh": {
+        "view" : {
+            "title": "log分析工具",
+            "file_menu": "文件",
+            "file_menu_klipper_cfg": "打开klipper.cfg",
+            "file_menu_exit": "退出",
+
+            "set_menu": "设置",
+            "set_menu_language": "语言",
+            "set_menu_language_en": "英文",
+            "set_menu_language_ch": "中文",
+            "set_menu_loss_set": "丢包间隔设置",
+
+            "about": "关于",
+            "dialog_about_title": "关于",
+            "about_text": "\n版本:{0}\n日期: {1}\n哈希: {2}\n\n版权所有 © 2023-{3} 蓝德欧智能控制技术有限公司。保留所有权利。",
+
+            
+            "btn_open_log": "打开log", 
+            "btn_comprehensive_analysis": "综合分析",
+            "btn_loss_packet_analysis": "丢包分析",
+            "btn_loss_packet_monitor": "丢包监控",
+
+
+            "dialog_input_title": "输入框",
+            "dialog_input_test": "输入丢包采样间隔值（表示这个间隔为stats的行数）",
+
+            "dialog_open_file": "选择文件"
+        },
+        
+        "analysis_plot_pic":{
+            "title_loss_packet_label": "丢包变化",
+            "title_error_tip_label": "错误信息",
+
+            "title_bytes_retransmit": "bytes retransmit丢包分析",
+            "xlabel_bytes_retransmit": "stats行间隔",
+            "ylabel_bytes_retransmit": "变化量",
+            "label_bytes_retransmit": "变化量",
+            
+            "title_extruder": "extruder温度",
+            "xlabel_extruder": "stats数量",
+            "ylabel_extruder": "温度",
+            "label_extruder": "温度",
+            "label_extruder_target": "目标温度",
+
+            "title_bed": "bed温度",
+            "xlabel_bed": "stats数量",
+            "ylabel_bed": "温度",
+            "label_bed": "温度",
+            "label_bed_target": "目标温度"
+        },
+
+        "error_tip": {
+            "Err_FileNotFoundError": "文件不存在",
+            "Err_CfgNotFoundError": "未找到配置",
+            "Err_NotOpenLog": "未打开log文件"
+        }
+    }
+}
