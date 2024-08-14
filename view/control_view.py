@@ -145,7 +145,7 @@ class ControlPanel(QWidget):
 
         # Draw a graph showing the results
         canvas_widget = QWidget(self)
-        self.plot_canvas = PlotCanvas(self, width=5, height=8)
+        self.plot_canvas = PlotCanvas(self, width=5, height=10)
         self.convas_gird = QGridLayout(canvas_widget)
         self.convas_gird.addWidget(button_prev, 0, 0)
         self.convas_gird.addWidget(self.plot_canvas, 0, 1)
@@ -174,8 +174,10 @@ class ControlPanel(QWidget):
 
     # 事件处理
     def open_log(self):
-        self.file_paths = Utilities.get_file_paths(self)
-        self.file_index = 0
+        file_paths = Utilities.get_file_paths(self)
+        if len(file_paths) != 0:
+            self.file_paths = file_paths
+            self.file_index = 0
 
     def comprehensive_analysis(self):
         try:
@@ -201,19 +203,19 @@ class ControlPanel(QWidget):
                         GlobalComm.get_langdic_val("error_tip", "Err_NotOpenLog")
                     )
         except Exception as e:
-            error = f"exceptions: {e}"
+            error = f"exceptions: {e}"  # todo, 显示错乱当报异常时
             Utilities.show_error_msg(error)
 
     def loss_packet_analysis(self):
         try:
+            file_path = Path(self.file_paths[self.file_index])
             if self.fun is None or self.fun != self.loss_packet_analysis:
                 self.fun = self.loss_packet_analysis
                 self.clear_container()
 
                 # 丢包图
-                file_path = Path(self.file_paths[self.file_index])
-                title_label = self.draw_title_label(file_path.name)
-                self.container_layout.addWidget(title_label)
+                self.file_title_label = self.draw_title_label(file_path.name)
+                self.container_layout.addWidget(self.file_title_label)
 
                 canvas_widget = self.draw_analytical_diagram()
                 self.container_layout.addWidget(canvas_widget)
@@ -238,13 +240,14 @@ class ControlPanel(QWidget):
                     ) as file:
                         log = file.read()
 
+                    self.file_title_label.setText(file_path.name)
                     self.text_edit.setPlainText(self.viewModel.get_error_str(log))
                     self.subplot_data = self.viewModel.loss_packet_analysis(log)
                     self.plot_canvas.plot_subplots(self.subplot_data)
                 else:
                     GlobalComm.get_langdic_val("error_tip", "Err_NotOpenLog")
         except Exception as e:
-            error = f"exceptions: {e}"
+            error = f"exceptions: {e}"  # todo, 显示错乱当报异常时
             Utilities.show_error_msg(error)
 
     def loss_packet_monitor(self):
