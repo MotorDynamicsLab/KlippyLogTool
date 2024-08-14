@@ -38,6 +38,7 @@ class PlotCanvas(FigureCanvas):
         ax = self.fig.add_subplot(row, col, index)
         ax.set_title(data["title"], fontproperties=self.prop)
         ax.set_xlabel(data["xlabel"], fontproperties=self.prop)
+        ax.xaxis.set_label_coords(-0.04, -0.04)
         ax.set_ylabel(data["ylabel"], fontproperties=self.prop)
         return ax
 
