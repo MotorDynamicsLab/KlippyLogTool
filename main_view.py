@@ -30,8 +30,8 @@ class MainPanel(QMainWindow):
         self.central_widget_init()
 
     def central_widget_init(self):
-        central_widget = ControlPanel(self)
-        self.setCentralWidget(central_widget)
+        self.central_widget = ControlPanel(self)
+        self.setCentralWidget(self.central_widget)
 
     def menu_init(self):
         self.menu_bar = self.menuBar()
@@ -40,7 +40,9 @@ class MainPanel(QMainWindow):
         )
 
         # 文件菜单 #
-        action = QAction(GlobalComm.get_langdic_val("view", "file_menu"), self)
+        action = QAction(
+            GlobalComm.get_langdic_val("view", "file_menu_mid_result"), self
+        )
         action.triggered.connect(self.save_result)
         file_menu.addAction(action)
 
@@ -118,7 +120,7 @@ class MainPanel(QMainWindow):
         )
 
         if ok and text:
-            self.control_panel.set_analysis_intervel(int(text))
+            self.central_widget.set_analysis_intervel(int(text))
 
     def show_about_dialog(self):
         about_text = GlobalComm.get_langdic_val(
@@ -131,11 +133,11 @@ class MainPanel(QMainWindow):
         )
 
     def save_result(self):
-        self.control_panel.save_some_files()
+        self.central_widget.save_some_files(True)
         Utilities.open_file_or_dir(GlobalComm.setting_json["ref_file_dir"]["dir_out"])
 
     def open_cfg_file(self):
-        self.control_panel.save_some_files(True)
+        self.central_widget.save_some_files()
         Utilities.open_file_or_dir(
             GlobalComm.setting_json["ref_file_dir"]["klipper_cfg"]
         )

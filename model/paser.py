@@ -52,7 +52,7 @@ class PaserLog:
                     "analysis_plot_pic", "ylabel_bytes_retransmit"
                 ),
             },
-            { # Specific graph data
+            {  # Specific graph data
                 "x": x,
                 "y": list_retransmit,
                 "label": GlobalComm.get_langdic_val(

@@ -21,6 +21,7 @@
         "view" : {
             "title": "log分析工具",
             "file_menu": "文件",
+            "file_menu_mid_result": "保存中间结果",
             "file_menu_klipper_cfg": "打开klipper.cfg",
             "file_menu_exit": "退出",
 

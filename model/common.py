@@ -1,5 +1,8 @@
 import json
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import (
+    QFileDialog,
+    QMessageBox,
+)
 import subprocess
 import sys
 
@@ -68,3 +71,12 @@ class Utilities:
         else:
             # Linux
             subprocess.Popen(["xdg-open", path])
+
+    @staticmethod
+    def show_error_msg(error):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText(error)
+        msg.setWindowTitle("Error")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
