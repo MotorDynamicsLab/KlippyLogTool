@@ -1,68 +1,68 @@
-import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
-import mplcursors
+import re
 
-# 设置中文字体
-font_path = 'C:/Windows/Fonts/simhei.ttf'  # Windows 系统上的字体路径
-prop = fm.FontProperties(fname=font_path)
 
-# 模拟数据
-data1 = {
-    "x": [1, 2, 3, 4, 5],
-    "y": [2, 3, 5, 7, 11],
-    "label": "图1标签",
-    "color": "blue",
-    "linestyle": "-"
-}
+class LogStats:
+    def __init__(self, log) -> None:
+        self.log = log
 
-data2 = {
-    "x": [1, 2, 3, 4, 5],
-    "y": [1, 4, 6, 8, 10],
-    "label": "图2标签",
-    "color": "red",
-    "linestyle": "--"
-}
+    def __generate_stats_list(self):
+        self.stats_list = []
+        lines = self.log.split("\n")
+        self.stats_list = [line for line in lines if line.startswith("Stats")]
 
-# 创建图形对象
-fig, ax = plt.subplots()
+    def __parse_stats_key_info(self, stats_string):
+        out_dicts = {}
+        heater_bed_match = re.search(
+            r"heater_bed:\s*target=(\d+)\s*temp=([-+]?\d*\.\d+|\d+)", stats_string
+        )
+        if heater_bed_match:
+            target = heater_bed_match.group(1)
+            temp = heater_bed_match.group(2)
+            out_dicts["heater_bed"] = {"target": target, "temp": temp}
+        else:
+            out_dicts["heater_bed"] = {"target": 0, "temp": 0}
 
-# 绘制图形1
-line1, = ax.plot(
-    data1["x"],
-    data1["y"],
-    label=data1["label"],
-    color=data1["color"],
-    linestyle=data1["linestyle"]
-)
-line1.label = data1["label"]
+        extruder_match = re.search(
+            r"extruder:\s*target=(\d+)\s*temp=([\d.]+)", stats_string
+        )
+        if extruder_match:
+            target = extruder_match.group(1)
+            temp = extruder_match.group(2)
+            out_dicts["extruder"] = {"target": target, "temp": temp}
+        else:
+            out_dicts["extruder"] = {"target": 0, "temp": 0}
 
-# 绘制图形2
-line2, = ax.plot(
-    data2["x"],
-    data2["y"],
-    label=data2["label"],
-    color=data2["color"],
-    linestyle=data2["linestyle"]
-)
-line2.label = data2["label"]
+        bytes_retransmit_matches = re.findall(r"bytes_retransmit=(\d+)", stats_string)
+        if bytes_retransmit_matches:
+            bytes_retransmit_list = [int(value) for value in bytes_retransmit_matches]
+            out_dicts["bytes_retransmit"] = bytes_retransmit_list
+        else:
+            out_dicts["bytes_retransmit"] = [0]
 
-# 设置图例，使用中文字体
-ax.legend(prop=prop)
+        return out_dicts
 
-# 设置标题和坐标轴标签
-ax.set_title('中文标题', fontproperties=prop)
-ax.set_xlabel('X轴标签', fontproperties=prop)
-ax.set_ylabel('Y轴标签', fontproperties=prop)
+    def get_stats_dicts(self):
+        self.__generate_stats_list()
 
-# 使用 mplcursors 添加悬停标签
-cursor = mplcursors.cursor([line1, line2], hover=True)
+        list_dict = []
+        for stats_line in self.stats_list:
+            list_dict.append(self.__parse_stats_key_info(stats_line))
+        return list_dict
 
-@cursor.connect("add")
-def on_add(sel):
-    x, y = sel.target
-    line = sel.artist
-    sel.annotation.set_text(f'{line.label}\nX: {x}\nY: {y}')
-    sel.annotation.set_fontproperties(prop)
 
-# 显示图形
-plt.show()
+# 读取 stats.txt 文件内容
+with open("d:/sync_workspace/company/parse-klippy-log-env/out/stats.txt", "r") as file:
+    log_content = file.read()
+
+# 创建 LogStats 对象并提取数据
+log_stats = LogStats(log_content)
+stats_dicts = log_stats.get_stats_dicts()
+
+# 提取 heater_bed 的 target 和 temp 数据
+heater_bed_data = [
+    (d["heater_bed"]["target"], d["heater_bed"]["temp"]) for d in stats_dicts
+]
+
+# 打印结果
+for target, temp in heater_bed_data:
+    print(f"Target: {target}, Temp: {temp}")

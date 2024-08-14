@@ -74,8 +74,8 @@ class PaserLog:
         target_extruder = pd.Series(target_list)
         temp_extruder = pd.Series(temp_list)
 
-        target_extruder_mean = target_extruder.rolling(window=100).mean()
-        temp_extruder_mean = temp_extruder.rolling(window=100).mean()
+        target_extruder_mean = target_extruder.rolling(window=100, min_periods=1).mean()
+        temp_extruder_mean = temp_extruder.rolling(window=100, min_periods=1).mean()
 
         # Generate graph data
         plot_data = [
@@ -122,8 +122,8 @@ class PaserLog:
         target_bed = pd.Series(target_list)
         temp_bed = pd.Series(temp_list)
 
-        target_bed_mean = target_bed.rolling(window=100).mean()
-        temp_bed_mean = temp_bed.rolling(window=100).mean()
+        target_bed_mean = target_bed.rolling(window=100, min_periods=1).mean()
+        temp_bed_mean = temp_bed.rolling(window=100, min_periods=1).mean()
 
         # Generate graph data
         plot_data = [

@@ -85,7 +85,7 @@ class LogStats:
     def __parse_stats_key_info(self, stats_string):
         out_dicts = {}
         heater_bed_match = re.search(
-            r"heater_bed:\s*target=(\d+)\s*temp=([\d.]+)", stats_string
+            r"heater_bed:\s*target=(\d+)\s*temp=([-+]?\d*\.\d+|\d+)", stats_string
         )
         if heater_bed_match:
             target = heater_bed_match.group(1)
@@ -95,7 +95,7 @@ class LogStats:
             out_dicts["heater_bed"] = {"target": 0, "temp": 0}
 
         extruder_match = re.search(
-            r"extruder:\s*target=(\d+)\s*temp=([\d.]+)", stats_string
+            r"extruder:\s*target=(\d+)\s*temp=([-+]?\d*\.\d+|\d+)", stats_string
         )
         if extruder_match:
             target = extruder_match.group(1)
