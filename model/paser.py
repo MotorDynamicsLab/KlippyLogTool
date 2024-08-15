@@ -8,7 +8,7 @@ class PaserLog:
         self.cfg = LogKlipper(log)
         self.stats = LogStats(log)
 
-    # 产生解析报告
+    # Generate analysis report
     def paser_cfg(self):
         cfg_str = self.cfg.extract_newest_config()
         Utilities.save_to_file(cfg_str, save_path="out/klipper.cfg")
@@ -29,7 +29,7 @@ class PaserLog:
         Utilities.save_to_file(stats_str, save_path="out/stats.txt")
         return stats_str
 
-    # 分析并产生图表
+    # Analyze and generate charts
     def analysis_bytes_retransmit(self, intervel):
         # 分析文本
         list_dicts = self.stats.get_stats_dicts()
@@ -37,14 +37,18 @@ class PaserLog:
             intervel, list_dicts
         )
 
+        loss_str = (
+            GlobalComm.get_langdic_val("analysis_plot_pic", "title_bytes_retransmit")
+            + "("
+            + GlobalComm.setting_json["loss_interval_set"]
+            + ")"
+        )
         # 产生图数据
         x = list(range(len(list_retransmit)))
         plot_data = [
             {  # Common part
                 "subplots": (2, 1, 1),
-                "title": GlobalComm.get_langdic_val(
-                    "analysis_plot_pic", "title_bytes_retransmit"
-                ),
+                "title": loss_str,
                 "xlabel": GlobalComm.get_langdic_val(
                     "analysis_plot_pic", "xlabel_bytes_retransmit"
                 ),

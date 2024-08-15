@@ -1,9 +1,10 @@
+from model.common import GlobalComm
 from model.paser import PaserLog
 
 
 class ControlViewModel:
     def __init__(self):
-        self.intervel = 100
+        self.intervel = int(GlobalComm.setting_json["loss_interval_set"])
 
     def get_error_str(self, log):
         paser = PaserLog(log)
@@ -20,7 +21,30 @@ class ControlViewModel:
     def output_cfg(self, log):
         if log != "":
             paser = PaserLog(log)
-            paser.paser_cfg()
+            return paser.paser_cfg()
+        return ""
+
+    # todo，获取mcu
+    def output_main_cfg_info(self, log):
+        cfg = self.output_cfg(log)
+        extracted_lines = []
+        capture = False
+
+        lines = cfg.split("\n")
+        for line in lines:
+            # 检查是否是[mcu开头的行
+            if line.startswith("[mcu"):
+                capture = True
+
+            # 如果在[mcu和serial之间，捕获行
+            if capture:
+                extracted_lines.append(line)
+
+            # 检查是否是serial开头的行
+            if "serial" in line or "canbus_uuid" in line:
+                capture = False
+
+        return "\n".join(extracted_lines)
 
     def set_intervel(self, intervel):
         self.intervel = intervel

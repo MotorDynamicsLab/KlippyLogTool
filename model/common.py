@@ -18,7 +18,7 @@ class GlobalComm:
         return GlobalComm.language_json[GlobalComm.language][sub_key_str][obj_str]
 
     @staticmethod
-    # todo, 抛出一个必然的异常，若配置文件不存在
+    #!!! todo, throws an inevitable exception if the configuration file does not exist
     def load_json_cfg():
         try:
             with open("cfg/settings.json", "r", encoding="utf-8") as f:
@@ -34,9 +34,14 @@ class GlobalComm:
             print(f"其他错误: {e}")
 
     @staticmethod
-    def save_language(language):
-        with open(GlobalComm.setting_json["ref_file_dir"]["cfg_setting"], "w") as f:
-            json.dump({"language": language}, f)
+    def set_cur_language(language):
+        GlobalComm.language = language
+
+    @staticmethod
+    def save_json_setting(key, val):
+        with open(GlobalComm.setting_json["cfg_setting"], "w") as f:
+            GlobalComm.setting_json[key] = val
+            json.dump(GlobalComm.setting_json, f, ensure_ascii=False, indent=4)
 
 
 class Utilities:

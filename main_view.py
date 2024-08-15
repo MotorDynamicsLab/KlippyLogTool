@@ -1,3 +1,5 @@
+import locale
+import os
 import sys
 from PyQt5.QtWidgets import (
     QApplication,
@@ -19,7 +21,7 @@ class MainPanel(QMainWindow):
         super().__init__()
 
         GlobalComm.load_json_cfg()
-        self.language = GlobalComm.setting_json["language"]
+        self.load_current_languag()
 
         # 主框架初始化
         self.setWindowTitle(GlobalComm.get_langdic_val("view", "title"))
@@ -95,20 +97,37 @@ class MainPanel(QMainWindow):
 
     ### 功能函数
     def update_language_ui(self):
-        # todo, 重启软件，加载语言最新
-        pass
+        os.execl(sys.executable, sys.executable, *sys.argv)
+
+    def load_current_languag(self):
+        if GlobalComm.setting_json["language"] == "":
+            lang, _ = locale.getdefaultlocale()
+            if lang and lang.startswith("zh"):
+                self.language = "zh"
+            elif lang and lang.startswith("en"):
+                self.language = "en"
+            else:
+                self.language = "en"  # 若是其他语言默认中文
+
+            GlobalComm.set_cur_language(self.language)
+        else:
+            self.language = GlobalComm.setting_json["language"]
 
     ### 事件
     def set_language_en(self):
         self.language = "en"
         self.chinese_action.setChecked(False)
-        GlobalComm.save_language(self.language)  # Save the selected language
+        GlobalComm.save_json_setting(
+            "language", self.language
+        )  # Save the selected language
         self.update_language_ui()
 
     def set_language_zh(self):
         self.language = "zh"
         self.english_action.setChecked(False)
-        GlobalComm.save_language(self.language)  # Save the selected language
+        GlobalComm.save_json_setting(
+            "language", self.language
+        )  # Save the selected language
         self.update_language_ui()
 
     def show_input_dialog(self):
@@ -121,6 +140,7 @@ class MainPanel(QMainWindow):
 
         if ok and text:
             self.central_widget.set_analysis_intervel(int(text))
+            GlobalComm.save_json_setting("loss_interval_set", text)
 
     def show_about_dialog(self):
         about_text = GlobalComm.get_langdic_val(
@@ -134,13 +154,11 @@ class MainPanel(QMainWindow):
 
     def save_result(self):
         self.central_widget.save_some_files(True)
-        Utilities.open_file_or_dir(GlobalComm.setting_json["ref_file_dir"]["dir_out"])
+        Utilities.open_file_or_dir(GlobalComm.setting_json["dir_out"])
 
     def open_cfg_file(self):
         self.central_widget.save_some_files()
-        Utilities.open_file_or_dir(
-            GlobalComm.setting_json["ref_file_dir"]["klipper_cfg"]
-        )
+        Utilities.open_file_or_dir(GlobalComm.setting_json["klipper_cfg"])
 
     def exit_app(self):
         QApplication.quit()

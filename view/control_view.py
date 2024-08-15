@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QTextEdit,
     QScrollArea,
     QLabel,
+    QSizePolicy,
 )
 import mplcursors
 
@@ -47,7 +48,7 @@ class PlotCanvas(FigureCanvas):
             ax = self.common_configure_subplot(list_dict)
             for index, dict in enumerate(list_dict):
                 if index == 0:
-                    continue  # 跳过第一项
+                    continue  # skip first item
                 ax.plot(
                     dict["x"],
                     dict["y"],
@@ -86,12 +87,12 @@ class ControlPanel(QWidget):
         grid_layout = QGridLayout(self)
         self.setLayout(grid_layout)
 
-        # 第一行
+        # first line
         open_log_btn = QPushButton(GlobalComm.get_langdic_val("view", "btn_open_log"))
         open_log_btn.clicked.connect(self.open_log)
-        grid_layout.addWidget(open_log_btn, 0, 0, 1, 3)  # 占用一行的三列
+        grid_layout.addWidget(open_log_btn, 0, 0, 1, 3)
 
-        # 第二行三个按钮
+        # Occupy three columns of a row Three buttons in the second row
         comprehensive_analysis_btn = QPushButton(
             GlobalComm.get_langdic_val("view", "btn_comprehensive_analysis")
         )
@@ -109,13 +110,14 @@ class ControlPanel(QWidget):
         )
         loss_packet_monitor_btn.clicked.connect(self.loss_packet_monitor)
         grid_layout.addWidget(loss_packet_monitor_btn, 1, 2)
+        loss_packet_monitor_btn.setEnabled(False)
 
-        # 剩下的位置放一个QVBoxLayout布局的页面容器
+        # Place a qv box layout page container in the remaining position
         container = QWidget(self)
         self.container_layout = QVBoxLayout(container)
         grid_layout.addWidget(container, 2, 0, 1, 3)
 
-        # 其他数据
+        # Other data
         self.file_index = 0
         self.fun = None
 
@@ -128,11 +130,18 @@ class ControlPanel(QWidget):
     def draw_error_tip(self):
         self.text_edit = QTextEdit(self)
         self.text_edit.setReadOnly(True)
+        self.text_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        return self.text_edit
 
-        # 创建滚动区域
+    def draw_cfg_main_info(self):
+        self.cfg_main_edit = QTextEdit(self)
+        self.cfg_main_edit.setReadOnly(True)
+        self.cfg_main_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # Create scroll area
         scroll_area = QScrollArea(self)
         scroll_area.setWidgetResizable(True)
-        scroll_area.setWidget(self.text_edit)
+        scroll_area.setWidget(self.cfg_main_edit)
         return scroll_area
 
     def draw_analytical_diagram(self):
@@ -146,14 +155,14 @@ class ControlPanel(QWidget):
 
         # Draw a graph showing the results
         canvas_widget = QWidget(self)
-        self.plot_canvas = PlotCanvas(self, width=5, height=10)
+        self.plot_canvas = PlotCanvas(self, width=5, height=7)
         self.convas_gird = QGridLayout(canvas_widget)
         self.convas_gird.addWidget(button_prev, 0, 0)
         self.convas_gird.addWidget(self.plot_canvas, 0, 1)
         self.convas_gird.addWidget(button_next, 0, 2)
         return canvas_widget
 
-    # 功能函数
+    # Function function
     def clear_container(self):
         for i in reversed(range(self.container_layout.count())):
             widget = self.container_layout.itemAt(i).widget()
@@ -173,7 +182,7 @@ class ControlPanel(QWidget):
     def set_analysis_intervel(self, intervel):
         self.viewModel.set_intervel(intervel)
 
-    # 事件处理
+    # event handling
     def open_log(self):
         file_paths = Utilities.get_file_paths(self)
         if len(file_paths) != 0:
@@ -214,14 +223,14 @@ class ControlPanel(QWidget):
                 self.fun = self.loss_packet_analysis
                 self.clear_container()
 
-                # 丢包图
+                # Packet loss graph
                 self.file_title_label = self.draw_title_label(file_path.name)
                 self.container_layout.addWidget(self.file_title_label)
 
                 canvas_widget = self.draw_analytical_diagram()
                 self.container_layout.addWidget(canvas_widget)
 
-                # 错误提示
+                # Error message
                 title_label = self.draw_title_label(
                     GlobalComm.get_langdic_val(
                         "analysis_plot_pic", "title_error_tip_label"
@@ -229,7 +238,15 @@ class ControlPanel(QWidget):
                 )
                 self.container_layout.addWidget(title_label)
 
-                scroll_area = self.draw_error_tip()
+                self.container_layout.addWidget(self.draw_error_tip())
+
+                title_label = self.draw_title_label(
+                    GlobalComm.get_langdic_val(
+                        "analysis_plot_pic", "title_cfg_tip_label"
+                    )
+                )
+                self.container_layout.addWidget(title_label)
+                scroll_area = self.draw_cfg_main_info()
                 self.container_layout.addWidget(scroll_area)
 
             if self.plot_canvas is not None:
@@ -242,6 +259,9 @@ class ControlPanel(QWidget):
                         log = file.read()
 
                     self.file_title_label.setText(file_path.name)
+                    self.cfg_main_edit.setPlainText(
+                        self.viewModel.output_main_cfg_info(log)
+                    )
                     self.text_edit.setPlainText(self.viewModel.get_error_str(log))
                     self.subplot_data = self.viewModel.loss_packet_analysis(log)
                     self.plot_canvas.plot_subplots(self.subplot_data)

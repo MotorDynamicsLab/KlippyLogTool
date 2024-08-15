@@ -149,9 +149,9 @@ class LogStats:
                     i = 0
                     list_retransmit.append(max_val - min_val)
                     min_val = min_last_val  # Starting from the last result
-                    max_val = max_last_val  # Starting from the last result
+                    max_val = max_last_val
 
-            if len(dicts) % interval != 0:
+            if len(list_dicts) % interval != 0:
                 list_retransmit.append(max_val - min_val)
 
             # print(list_retransmit, len(list_retransmit))
