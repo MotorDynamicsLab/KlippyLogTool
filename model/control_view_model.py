@@ -54,8 +54,8 @@ class ControlViewModel:
         if log != "":
             paser = PaserLog(log)
             subplot_data.append(paser.analysis_bytes_retransmit(self.intervel))
-            subplot_data.append(paser.analysis_bed_temp())
-            subplot_data.append(paser.analysis_extruder_temp())
+            subplot_data.append(paser.analysis_bed_temp(self.intervel))
+            subplot_data.append(paser.analysis_extruder_temp(self.intervel))
 
         return subplot_data
 

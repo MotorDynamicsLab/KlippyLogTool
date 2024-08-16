@@ -1,6 +1,7 @@
+from concurrent.futures import ThreadPoolExecutor
 import re
 from collections import defaultdict
-
+import numpy as np
 from model.common import GlobalComm
 
 
@@ -51,28 +52,6 @@ class LogKlipper:
             file.write(cfg)
 
 
-class LogTemp:
-    def __init__(self, log) -> None:
-        self.log = log
-
-    def __get_temp_info(self, target_str):
-        start_index = self.log.rfind(target_str) + len(target_str)
-        if start_index != -1:
-            end_index = self.log.find("\n", start_index)
-            target_temp = self.log[start_index:end_index].strip()
-            return target_temp
-        return None
-
-    def get_newest_temp_target_dict(self):
-        temp_dict = {}
-        target_str = "Heater heater_bed approaching new target of "
-        temp_dict["heater_bed_target"] = self.__get_temp_info(target_str)
-
-        target_str = "Heater extruder approaching new target of "
-        temp_dict["extruder_target"] = self.__get_temp_info(target_str)
-        return temp_dict
-
-
 class LogStats:
     def __init__(self, log) -> None:
         self.log = log
@@ -98,7 +77,8 @@ class LogStats:
                 if "=" not in part:
                     # 这是一个模块名
                     current_module = part.rstrip(":")
-                    result[current_module] = {}
+                    if current_module not in result:
+                        result[current_module] = {}
                 else:
                     # 这是一个键值对
                     key, value = part.split("=")
@@ -131,8 +111,10 @@ class LogStats:
 
         self.__generate_stats_list()
         list_dict = []
-        for stats_line in self.stats_list:
-            list_dict.append(self.__parse_stats_key_info(stats_line))
+
+        with ThreadPoolExecutor() as executor:
+            results = executor.map(self.__parse_stats_key_info, self.stats_list)
+            list_dict = list(results)
 
         self._cached_stats_dicts = list_dict
         return list_dict
@@ -197,20 +179,40 @@ class LogStats:
             return list_retransmit_mcus, mcu_list
 
         except Exception as e:
-            print("异常 get_bytes_retransmit_incremental_list：", e)
+            print("Exception get_bytes_retransmit_incremental_list: ", e)
 
-    def get_target_temp_list(self, list_dicts):
+    def get_target_temp_list(self, interval, list_dicts):
         try:
             extruder_temp_list = []
             bed_temp_list = []
+            i = 0
 
+            val_list = []
             for dicts in list_dicts:
                 if "heater_bed" in dicts and "extruder" in dicts:
-                    bed_temp_list.append(
-                        (dicts["heater_bed"]["target"], dicts["heater_bed"]["temp"])
+                    val_list.append(
+                        (
+                            float(dicts["heater_bed"]["target"]),
+                            float(dicts["heater_bed"]["temp"]),
+                            float(dicts["extruder"]["target"]),
+                            float(dicts["extruder"]["temp"]),
+                        )
                     )
+
+                i += 1
+                if interval == i:
+                    i = 0
                     extruder_temp_list.append(
-                        (dicts["extruder"]["target"], dicts["extruder"]["temp"])
+                        (
+                            np.mean([t[0] for t in val_list]),
+                            np.mean([t[1] for t in val_list]),
+                        )
+                    )
+                    bed_temp_list.append(
+                        (
+                            np.mean([t[2] for t in val_list]),
+                            np.mean([t[3] for t in val_list]),
+                        )
                     )
 
             # print(extruder_temp_list)

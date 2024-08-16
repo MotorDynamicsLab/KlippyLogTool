@@ -75,9 +75,6 @@ class PaserLog:
         Utilities.save_to_file(stats_str, save_path="out/stats.txt")
         return stats_str
 
-    def random_color(self):
-        return (random.random(), random.random(), random.random())
-
     # Analyze and generate charts
     def analysis_bytes_retransmit(self, intervel):
         # todo 分析文本 , 以mcu分离多个变化线
@@ -123,18 +120,12 @@ class PaserLog:
 
         return plot_data
 
-    def analysis_extruder_temp(self):
+    def analysis_extruder_temp(self, intervel):
         # Analyze text
         list_dicts = self.stats.get_stats_dicts()
-        extruder_temp_list, _ = self.stats.get_target_temp_list(list_dicts)
+        extruder_temp_list, _ = self.stats.get_target_temp_list(intervel, list_dicts)
         target_list = [t[0] for t in extruder_temp_list]
         temp_list = [t[1] for t in extruder_temp_list]
-
-        target_extruder = pd.Series(target_list)
-        temp_extruder = pd.Series(temp_list)
-
-        target_extruder_mean = target_extruder.rolling(window=100, min_periods=1).mean()
-        temp_extruder_mean = temp_extruder.rolling(window=100, min_periods=1).mean()
 
         # Generate graph data
         plot_data = [
@@ -151,8 +142,8 @@ class PaserLog:
                 ),
             },
             {  # Specific graph data
-                "x": target_extruder_mean.index,
-                "y": target_extruder_mean,
+                "x": list(range(len(target_list))),
+                "y": target_list,
                 "label": GlobalComm.get_langdic_val(
                     "analysis_plot_pic", "label_extruder_target"
                 ),
@@ -160,8 +151,8 @@ class PaserLog:
                 "linestyle": "--",
             },
             {
-                "x": temp_extruder_mean.index,
-                "y": temp_extruder_mean,
+                "x": list(range(len(temp_list))),
+                "y": temp_list,
                 "label": GlobalComm.get_langdic_val(
                     "analysis_plot_pic", "label_extruder"
                 ),
@@ -171,18 +162,12 @@ class PaserLog:
         ]
         return plot_data
 
-    def analysis_bed_temp(self):
+    def analysis_bed_temp(self, intervel):
         # Analyze text
         list_dicts = self.stats.get_stats_dicts()
-        _, bed_temp_list = self.stats.get_target_temp_list(list_dicts)
+        _, bed_temp_list = self.stats.get_target_temp_list(intervel, list_dicts)
         target_list = [t[0] for t in bed_temp_list]
         temp_list = [t[1] for t in bed_temp_list]
-
-        target_bed = pd.Series(target_list)
-        temp_bed = pd.Series(temp_list)
-
-        target_bed_mean = target_bed.rolling(window=100, min_periods=1).mean()
-        temp_bed_mean = temp_bed.rolling(window=100, min_periods=1).mean()
 
         # Generate graph data
         plot_data = [
@@ -193,8 +178,8 @@ class PaserLog:
                 "ylabel": GlobalComm.get_langdic_val("analysis_plot_pic", "ylabel_bed"),
             },
             {  # Specific graph data
-                "x": target_bed_mean.index,
-                "y": target_bed_mean,
+                "x": list(range(len(target_list))),
+                "y": target_list,
                 "label": GlobalComm.get_langdic_val(
                     "analysis_plot_pic", "label_bed_target"
                 ),
@@ -202,8 +187,8 @@ class PaserLog:
                 "linestyle": "--",
             },
             {
-                "x": temp_bed_mean.index,
-                "y": temp_bed_mean,
+                "x": list(range(len(temp_list))),
+                "y": temp_list,
                 "label": GlobalComm.get_langdic_val("analysis_plot_pic", "label_bed"),
                 "color": "r",
                 "linestyle": "-",
