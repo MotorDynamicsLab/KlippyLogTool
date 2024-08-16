@@ -1,6 +1,52 @@
+import random
 from model.common import GlobalComm, Utilities
 from model.klipper_log import LogKlipper, LogStats
 import pandas as pd
+
+
+class RandomColor:
+    def __init__(self):
+        self.used_hues = []
+        self.hue_step = 30  # 每次生成颜色之间的最小色调差异
+
+    def random_color(self):
+        while True:
+            # 生成随机的 HSL 颜色
+            h = random.randint(0, 360)
+            s = 100
+            l = 50
+
+            # 检查颜色的色调是否已经被使用过
+            if all(abs(h - used_hue) >= self.hue_step for used_hue in self.used_hues):
+                self.used_hues.append(h)
+                return self.hsl_to_rgb(h, s, l)
+
+    def hsl_to_rgb(self, h, s, l):
+        # h, s, l 都在 [0, 100] 范围内
+        s /= 100
+        l /= 100
+        c = (1 - abs(2 * l - 1)) * s
+        x = c * (1 - abs((h / 60) % 2 - 1))
+        m = l - c / 2
+
+        if 0 <= h < 60:
+            r, g, b = c, x, 0
+        elif 60 <= h < 120:
+            r, g, b = x, c, 0
+        elif 120 <= h < 180:
+            r, g, b = 0, c, x
+        elif 180 <= h < 240:
+            r, g, b = 0, x, c
+        elif 240 <= h < 300:
+            r, g, b = x, 0, c
+        else:
+            r, g, b = c, 0, x
+
+        r = (r + m) * 255
+        g = (g + m) * 255
+        b = (b + m) * 255
+
+        return (r / 255, g / 255, b / 255)
 
 
 class PaserLog:
@@ -29,11 +75,14 @@ class PaserLog:
         Utilities.save_to_file(stats_str, save_path="out/stats.txt")
         return stats_str
 
+    def random_color(self):
+        return (random.random(), random.random(), random.random())
+
     # Analyze and generate charts
     def analysis_bytes_retransmit(self, intervel):
-        # 分析文本
+        # todo 分析文本 , 以mcu分离多个变化线
         list_dicts = self.stats.get_stats_dicts()
-        list_retransmit = self.stats.get_bytes_retransmit_incremental_list(
+        list_retransmit, mcu_list = self.stats.get_bytes_retransmit_incremental_list(
             intervel, list_dicts
         )
 
@@ -44,7 +93,6 @@ class PaserLog:
             + ")"
         )
         # 产生图数据
-        x = list(range(len(list_retransmit)))
         plot_data = [
             {  # Common part
                 "subplots": (2, 1, 1),
@@ -56,16 +104,23 @@ class PaserLog:
                     "analysis_plot_pic", "ylabel_bytes_retransmit"
                 ),
             },
-            {  # Specific graph data
-                "x": x,
-                "y": list_retransmit,
-                "label": GlobalComm.get_langdic_val(
-                    "analysis_plot_pic", "label_bytes_retransmit"
-                ),
-                "linestyle": "-",
-                "color": "b",
-            },
         ]
+
+        i = 0
+        color = RandomColor()
+        for mcu in mcu_list:
+            list_mcu = [sublist[i] for sublist in list_retransmit]
+            i += 1
+            plot_data.append(
+                {  # Specific graph data
+                    "x": list(range(len(list_retransmit))),
+                    "y": list_mcu,
+                    "label": mcu,
+                    "linestyle": "-",
+                    "color": color.random_color(),
+                }
+            )
+
         return plot_data
 
     def analysis_extruder_temp(self):

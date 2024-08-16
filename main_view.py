@@ -48,6 +48,21 @@ class MainPanel(QMainWindow):
         action.triggered.connect(self.save_result)
         file_menu.addAction(action)
 
+        # 检测菜单 #
+        file_menu = self.menu_bar.addMenu(
+            GlobalComm.get_langdic_val("view", "check_title")
+        )
+
+        # 连接检测
+        action = QAction(GlobalComm.get_langdic_val("view", "connect_check"), self)
+        action.triggered.connect(self.connect_check)
+        file_menu.addAction(action)
+
+        # 打印检测
+        action = QAction(GlobalComm.get_langdic_val("view", "printer_check"), self)
+        action.triggered.connect(self.printer_check)
+        file_menu.addAction(action)
+
         # 创建保存配置文件
         action = QAction(
             GlobalComm.get_langdic_val("view", "file_menu_klipper_cfg"), self
@@ -130,17 +145,23 @@ class MainPanel(QMainWindow):
         )  # Save the selected language
         self.update_language_ui()
 
+    def connect_check(self):
+        pass
+
+    def printer_check(self):
+        pass
+
     def show_input_dialog(self):
         # Show an input dialog to get user input
         text, ok = QInputDialog.getText(
             self,
             GlobalComm.get_langdic_val("view", "dialog_input_title"),
             GlobalComm.get_langdic_val("view", "dialog_input_test"),
+            text=GlobalComm.setting_json["loss_interval_set"],
         )
 
         if ok and text:
             self.central_widget.set_analysis_intervel(int(text))
-            GlobalComm.save_json_setting("loss_interval_set", text)
 
     def show_about_dialog(self):
         about_text = GlobalComm.get_langdic_val(

@@ -24,6 +24,11 @@
             "file_menu_mid_result": "保存并打开out文件夹",
             "file_menu_klipper_cfg": "打开klipper.cfg",
             "file_menu_exit": "退出",
+            
+            "check_title": "检测",
+            "connect_check": "是否连接过",
+            "printer_check": "是否打印过",
+
 
             "set_menu": "设置",
             "set_menu_language": "语言",

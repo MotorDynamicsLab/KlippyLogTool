@@ -83,35 +83,43 @@ class LogStats:
         self.stats_list = [line for line in lines if line.startswith("Stats")]
 
     def __parse_stats_key_info(self, stats_string):
-        out_dicts = {}
-        heater_bed_match = re.search(
-            r"heater_bed:\s*target=(\d+)\s*temp=([-+]?\d*\.\d+|\d+)", stats_string
-        )
-        if heater_bed_match:
-            target = heater_bed_match.group(1)
-            temp = heater_bed_match.group(2)
-            out_dicts["heater_bed"] = {"target": target, "temp": temp}
-        else:
-            out_dicts["heater_bed"] = {"target": 0, "temp": 0}
+        # 分割字符串
+        parts = stats_string.split()
 
-        extruder_match = re.search(
-            r"extruder:\s*target=(\d+)\s*temp=([-+]?\d*\.\d+|\d+)", stats_string
-        )
-        if extruder_match:
-            target = extruder_match.group(1)
-            temp = extruder_match.group(2)
-            out_dicts["extruder"] = {"target": target, "temp": temp}
-        else:
-            out_dicts["extruder"] = {"target": 0, "temp": 0}
+        # 初始化结果字典
+        result = {}
 
-        bytes_retransmit_matches = re.findall(r"bytes_retransmit=(\d+)", stats_string)
-        if bytes_retransmit_matches:
-            bytes_retransmit_list = [int(value) for value in bytes_retransmit_matches]
-            out_dicts["bytes_retransmit"] = bytes_retransmit_list
-        else:
-            out_dicts["bytes_retransmit"] = [0]
+        # 当前处理的模块名
+        current_module = None
 
-        return out_dicts
+        for part in parts:
+            if ":" in part:
+                # 这是一个模块名或键值对
+                if "=" not in part:
+                    # 这是一个模块名
+                    current_module = part.rstrip(":")
+                    result[current_module] = {}
+                else:
+                    # 这是一个键值对
+                    key, value = part.split("=")
+                    if current_module:
+                        result[current_module][key] = value
+                    else:
+                        result[key] = value
+            else:
+                # 这是一个键值对
+                if "=" in part:
+                    key, value = part.split("=")
+                    if current_module:
+                        result[current_module][key] = value
+                    else:
+                        result[key] = value
+                else:
+                    pass
+                    # 处理没有等号的部分
+                    # print(f"Warning: Skipping invalid part '{part}'")
+
+        return result
 
     def get_stats_info(self):
         self.__generate_stats_list()
@@ -125,37 +133,59 @@ class LogStats:
             list_dict.append(self.__parse_stats_key_info(stats_line))
         return list_dict
 
+    def get_mcu_list(self, list_dicts):
+        mcu = []
+        if len(list_dicts) != 0:
+            dicts = list_dicts[0]
+            for module, data in dicts.items():
+                if isinstance(data, dict):
+                    for key, value in data.items():
+                        if key == "mcu_awake":
+                            mcu.append(module)
+        return mcu
+
     def get_bytes_retransmit_incremental_list(self, interval, list_dicts):
         try:
             i = 0
-            min_val = max_val = 0
-            min_last_val = max_last_val = 0
-            list_retransmit = []
+            list_retransmit_mcus = []
+            mcu_list = self.get_mcu_list(list_dicts)
+            cur_val = {}
+            max_val = {}
+            min_val = {}
+            for mcu in mcu_list:
+                max_val[mcu] = min_val[mcu] = 0
 
             for dicts in list_dicts:
-                min_last_val = min(
-                    dicts["bytes_retransmit"]
-                )  # Here min_last_val and max_last_val are generally the same value
-                max_last_val = max(dicts["bytes_retransmit"])
+                for mcu in mcu_list:
+                    if mcu in dicts:
+                        cur_val[mcu] = int(dicts[mcu]["bytes_retransmit"])
 
-                if min_last_val < min_val:
-                    min_val = min_last_val
+                    if cur_val[mcu] < min_val[mcu]:
+                        min_val[mcu] = cur_val[mcu]
 
-                if max_last_val > max_val:
-                    max_val = max_last_val
+                    if cur_val[mcu] > max_val[mcu]:
+                        max_val[mcu] = cur_val[mcu]
 
                 i += 1
                 if interval == i:
                     i = 0
-                    list_retransmit.append(max_val - min_val)
-                    min_val = min_last_val  # Starting from the last result
-                    max_val = max_last_val
+                    temp_list = []
+                    for mcu in mcu_list:
+                        temp_list.append(max_val[mcu] - min_val[mcu])
+                        # Starting from the last result
+                        max_val[mcu] = min_val[mcu] = cur_val[mcu]
+                    list_retransmit_mcus.append(temp_list)
 
             if len(list_dicts) % interval != 0:
-                list_retransmit.append(max_val - min_val)
+                temp_list = []
+                for mcu in mcu_list:
+                    temp_list.append(max_val[mcu] - min_val[mcu])
+                    # Starting from the last result
+                    max_val[mcu] = min_val[mcu] = cur_val[mcu]
+                list_retransmit_mcus.append(temp_list)
 
-            # print(list_retransmit, len(list_retransmit))
-            return list_retransmit
+            # print(list_retransmit_mcus, len(list_retransmit))
+            return list_retransmit_mcus, mcu_list
 
         except Exception as e:
             print("异常 get_bytes_retransmit_incremental_list：", e)
@@ -165,15 +195,14 @@ class LogStats:
             extruder_temp_list = []
             bed_temp_list = []
 
-            i = 0
             for dicts in list_dicts:
-                i += 1
-                bed_temp_list.append(
-                    (dicts["heater_bed"]["target"], dicts["heater_bed"]["temp"])
-                )
-                extruder_temp_list.append(
-                    (dicts["extruder"]["target"], dicts["extruder"]["temp"])
-                )
+                if "heater_bed" in dicts and "extruder" in dicts:
+                    bed_temp_list.append(
+                        (dicts["heater_bed"]["target"], dicts["heater_bed"]["temp"])
+                    )
+                    extruder_temp_list.append(
+                        (dicts["extruder"]["target"], dicts["extruder"]["temp"])
+                    )
 
             # print(extruder_temp_list)
             return (extruder_temp_list, bed_temp_list)

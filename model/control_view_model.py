@@ -33,7 +33,7 @@ class ControlViewModel:
         lines = cfg.split("\n")
         for line in lines:
             # 检查是否是[mcu开头的行
-            if line.startswith("[mcu"):
+            if line.startswith("[mcu") or line.startswith("[beacon]"):
                 capture = True
 
             # 如果在[mcu和serial之间，捕获行

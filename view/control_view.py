@@ -121,6 +121,7 @@ class ControlPanel(QWidget):
         self.file_index = 0
         self.fun = None
 
+    # Interface related #
     def draw_title_label(self, title_str):
         text_label = QLabel(self)
         text_label.setText(title_str)
@@ -137,12 +138,7 @@ class ControlPanel(QWidget):
         self.cfg_main_edit = QTextEdit(self)
         self.cfg_main_edit.setReadOnly(True)
         self.cfg_main_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        # Create scroll area
-        scroll_area = QScrollArea(self)
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setWidget(self.cfg_main_edit)
-        return scroll_area
+        return self.cfg_main_edit
 
     def draw_analytical_diagram(self):
         # Button for switching left and right of the image
@@ -171,7 +167,7 @@ class ControlPanel(QWidget):
 
     def save_some_files(self, only_cfg=False):
         log = ""
-        with open(self.file_paths[0], "r", encoding="utf-8") as file:
+        with open(self.file_paths[self.file_index], "r", encoding="utf-8") as file:
             log = file.read()
 
         if only_cfg:
@@ -182,7 +178,7 @@ class ControlPanel(QWidget):
     def set_analysis_intervel(self, intervel):
         self.viewModel.set_intervel(intervel)
 
-    # event handling
+    # event handling #
     def open_log(self):
         file_paths = Utilities.get_file_paths(self)
         if len(file_paths) != 0:
