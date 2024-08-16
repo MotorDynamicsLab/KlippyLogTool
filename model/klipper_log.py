@@ -126,11 +126,15 @@ class LogStats:
         return "\n".join(self.stats_list)
 
     def get_stats_dicts(self):
-        self.__generate_stats_list()
+        if hasattr(self, "_cached_stats_dicts"):
+            return self._cached_stats_dicts
 
+        self.__generate_stats_list()
         list_dict = []
         for stats_line in self.stats_list:
             list_dict.append(self.__parse_stats_key_info(stats_line))
+
+        self._cached_stats_dicts = list_dict
         return list_dict
 
     def get_mcu_list(self, list_dicts):
@@ -146,16 +150,9 @@ class LogStats:
 
     def get_bytes_retransmit_incremental_list(self, interval, list_dicts):
         try:
-            i = 0
-            list_retransmit_mcus = []
-            mcu_list = self.get_mcu_list(list_dicts)
-            cur_val = {}
-            max_val = {}
-            min_val = {}
-            for mcu in mcu_list:
-                max_val[mcu] = min_val[mcu] = 0
+            from concurrent.futures import ThreadPoolExecutor
 
-            for dicts in list_dicts:
+            def process_dicts(dicts, mcu_list, cur_val, max_val, min_val):
                 for mcu in mcu_list:
                     if mcu in dicts:
                         cur_val[mcu] = int(dicts[mcu]["bytes_retransmit"])
@@ -166,25 +163,37 @@ class LogStats:
                     if cur_val[mcu] > max_val[mcu]:
                         max_val[mcu] = cur_val[mcu]
 
-                i += 1
-                if interval == i:
-                    i = 0
-                    temp_list = []
-                    for mcu in mcu_list:
-                        temp_list.append(max_val[mcu] - min_val[mcu])
-                        # Starting from the last result
-                        max_val[mcu] = min_val[mcu] = cur_val[mcu]
-                    list_retransmit_mcus.append(temp_list)
+            i = 0
+            list_retransmit_mcus = []
+            mcu_list = self.get_mcu_list(list_dicts)
+            cur_val = {}
+            max_val = {}
+            min_val = {}
+            for mcu in mcu_list:
+                max_val[mcu] = min_val[mcu] = 0
+
+            with ThreadPoolExecutor() as executor:
+                for dicts in list_dicts:
+                    executor.submit(
+                        process_dicts, dicts, mcu_list, cur_val, max_val, min_val
+                    )
+
+                    i += 1
+                    if interval == i:
+                        i = 0
+                        temp_list = []
+                        for mcu in mcu_list:
+                            temp_list.append(max_val[mcu] - min_val[mcu])
+                            max_val[mcu] = min_val[mcu] = cur_val[mcu]
+                        list_retransmit_mcus.append(temp_list)
 
             if len(list_dicts) % interval != 0:
                 temp_list = []
                 for mcu in mcu_list:
                     temp_list.append(max_val[mcu] - min_val[mcu])
-                    # Starting from the last result
                     max_val[mcu] = min_val[mcu] = cur_val[mcu]
                 list_retransmit_mcus.append(temp_list)
 
-            # print(list_retransmit_mcus, len(list_retransmit))
             return list_retransmit_mcus, mcu_list
 
         except Exception as e:
