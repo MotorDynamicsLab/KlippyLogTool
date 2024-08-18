@@ -6,6 +6,7 @@ from model.paser import PaserLog
 class ControlViewModel:
     def __init__(self):
         self.intervel = int(GlobalComm.setting_json["loss_interval_set"])
+        self.mcu_info = ""
 
     def get_error_str(self, log):
         paser = PaserLog(log)
@@ -32,7 +33,7 @@ class ControlViewModel:
         return ""
 
     def output_main_cfg_info(self, log, file_update):
-        if file_update:
+        if file_update or self.mcu_info == "":
             cfg = self.get_cfg_info(log)
             self.mcu_info = ""
             extracted_lines = []

@@ -48,21 +48,6 @@ class MainPanel(QMainWindow):
         action.triggered.connect(self.save_result)
         file_menu.addAction(action)
 
-        # 检测菜单 #
-        file_menu = self.menu_bar.addMenu(
-            GlobalComm.get_langdic_val("view", "check_title")
-        )
-
-        # 连接检测
-        action = QAction(GlobalComm.get_langdic_val("view", "connect_check"), self)
-        action.triggered.connect(self.connect_check)
-        file_menu.addAction(action)
-
-        # 打印检测
-        action = QAction(GlobalComm.get_langdic_val("view", "printer_check"), self)
-        action.triggered.connect(self.printer_check)
-        file_menu.addAction(action)
-
         # 创建保存配置文件
         action = QAction(
             GlobalComm.get_langdic_val("view", "file_menu_klipper_cfg"), self
