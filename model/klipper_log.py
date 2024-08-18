@@ -57,9 +57,10 @@ class LogStats:
         self.log = log
 
     def __generate_stats_list(self):
-        self.stats_list = []
-        lines = self.log.split("\n")
-        self.stats_list = [line for line in lines if line.startswith("Stats")]
+        # 使用生成器表达式来节省内存
+        self.stats_list = [
+            line for line in self.log.splitlines() if line.startswith("Stats")
+        ]
 
     def __parse_stats_key_info(self, stats_string):
         # 分割字符串
@@ -185,10 +186,9 @@ class LogStats:
         try:
             extruder_temp_list = []
             bed_temp_list = []
-            i = 0
-
             val_list = []
-            for dicts in list_dicts:
+
+            for i, dicts in enumerate(list_dicts):
                 if "heater_bed" in dicts and "extruder" in dicts:
                     val_list.append(
                         (
@@ -199,23 +199,21 @@ class LogStats:
                         )
                     )
 
-                i += 1
-                if interval == i:
-                    i = 0
+                if (i + 1) % interval == 0:
                     extruder_temp_list.append(
                         (
-                            np.mean([t[0] for t in val_list]),
-                            np.mean([t[1] for t in val_list]),
+                            np.min([t[0] for t in val_list]),
+                            np.min([t[1] for t in val_list]),
                         )
                     )
                     bed_temp_list.append(
                         (
-                            np.mean([t[2] for t in val_list]),
-                            np.mean([t[3] for t in val_list]),
+                            np.min([t[2] for t in val_list]),
+                            np.min([t[3] for t in val_list]),
                         )
                     )
+                    val_list.clear()  # Clear the list for the next interval
 
-            # print(extruder_temp_list)
             return (extruder_temp_list, bed_temp_list)
 
         except Exception as e:

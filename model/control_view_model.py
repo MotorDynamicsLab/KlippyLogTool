@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from model.common import GlobalComm
 from model.paser import PaserLog
 
@@ -59,9 +60,20 @@ class ControlViewModel:
         subplot_data = []
         if log != "":
             paser = PaserLog(log)
-            subplot_data.append(paser.analysis_bytes_retransmit(self.intervel))
-            subplot_data.append(paser.analysis_bed_temp(self.intervel))
-            subplot_data.append(paser.analysis_extruder_temp(self.intervel))
+
+            with ThreadPoolExecutor() as executor:
+                futures = {
+                    executor.submit(
+                        paser.analysis_bytes_retransmit, self.intervel
+                    ): "bytes_retransmit",
+                    executor.submit(paser.analysis_bed_temp, self.intervel): "bed_temp",
+                    executor.submit(
+                        paser.analysis_extruder_temp, self.intervel
+                    ): "extruder_temp",
+                }
+                for future in futures:
+                    result = future.result()
+                    subplot_data.append(result)
 
         return subplot_data
 
