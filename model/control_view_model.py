@@ -24,27 +24,33 @@ class ControlViewModel:
             return paser.paser_cfg()
         return ""
 
-    # todo，获取mcu
-    def output_main_cfg_info(self, log):
-        cfg = self.output_cfg(log)
-        extracted_lines = []
-        capture = False
+    def get_cfg_info(self, log):
+        if log != "":
+            paser = PaserLog(log)
+            return paser.paser_cfg_info()
+        return ""
 
-        lines = cfg.split("\n")
-        for line in lines:
-            # 检查是否是[mcu开头的行
-            if line.startswith("[mcu") or line.startswith("[beacon]"):
-                capture = True
+    def output_main_cfg_info(self, log, file_update):
+        if file_update:
+            cfg = self.get_cfg_info(log)
+            self.mcu_info = ""
+            extracted_lines = []
+            capture = False
+            lines = cfg.split("\n")
+            for line in lines:
+                # 检查是否是[mcu开头的行
+                if line.startswith("[mcu") or line.startswith("[beacon]"):
+                    capture = True
 
-            # 如果在[mcu和serial之间，捕获行
-            if capture:
-                extracted_lines.append(line)
+                # 如果在[mcu和serial之间，捕获行
+                if capture:
+                    extracted_lines.append(line)
 
-            # 检查是否是serial开头的行
-            if "serial" in line or "canbus_uuid" in line:
-                capture = False
-
-        return "\n".join(extracted_lines)
+                # 检查是否是serial开头的行
+                if "serial" in line or "canbus_uuid" in line:
+                    capture = False
+            self.mcu_info = "\n".join(extracted_lines)
+        return self.mcu_info
 
     def set_intervel(self, intervel):
         self.intervel = intervel

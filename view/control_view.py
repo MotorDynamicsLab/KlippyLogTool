@@ -79,6 +79,7 @@ class ControlPanel(QWidget):
 
         self.subplot_data = []
         self.file_paths = ["logs/klippy.log"]
+        self.cur_file_path = ""
 
         self.viewModel = ControlViewModel()
         self.init_widget()
@@ -187,22 +188,26 @@ class ControlPanel(QWidget):
 
     def comprehensive_analysis(self):
         try:
+            # Clear previous display
             if self.fun is None or self.fun != self.comprehensive_analysis:
                 self.fun = self.comprehensive_analysis
                 self.clear_container()
                 canvas_widget = self.draw_analytical_diagram()
                 self.container_layout.addWidget(canvas_widget)
 
+            # parse log
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
                 if len(self.file_paths) > 0:
-                    log = ""
-                    with open(
-                        self.file_paths[self.file_index], "r", encoding="utf-8"
-                    ) as file:
-                        log = file.read()
+                    if self.cur_file_path != self.file_paths[self.file_index]:
+                        self.log = ""
+                        self.cur_file_path = self.file_paths[self.file_index]
+                        with open(
+                            self.file_paths[self.file_index], "r", encoding="utf-8"
+                        ) as file:
+                            self.log = file.read()
 
-                    self.subplot_data = self.viewModel.comprehensive_analysis(log)
+                    self.subplot_data = self.viewModel.comprehensive_analysis(self.log)
                     self.plot_canvas.plot_subplots(self.subplot_data)
                 else:
                     Utilities.show_error_msg(
@@ -214,6 +219,7 @@ class ControlPanel(QWidget):
 
     def loss_packet_analysis(self):
         try:
+            # Clear previous display
             file_path = Path(self.file_paths[self.file_index])
             if self.fun is None or self.fun != self.loss_packet_analysis:
                 self.fun = self.loss_packet_analysis
@@ -245,21 +251,25 @@ class ControlPanel(QWidget):
                 scroll_area = self.draw_cfg_main_info()
                 self.container_layout.addWidget(scroll_area)
 
+            # parse log
+            file_update = self.cur_file_path != self.file_paths[self.file_index]
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
-                log = ""
                 if len(self.file_paths) > 0:
-                    with open(
-                        self.file_paths[self.file_index], "r", encoding="utf-8"
-                    ) as file:
-                        log = file.read()
+                    if file_update:
+                        self.log = ""
+                        self.cur_file_path = self.file_paths[self.file_index]
+                        with open(
+                            self.file_paths[self.file_index], "r", encoding="utf-8"
+                        ) as file:
+                            self.log = file.read()
 
                     self.file_title_label.setText(file_path.name)
                     self.cfg_main_edit.setPlainText(
-                        self.viewModel.output_main_cfg_info(log)
+                        self.viewModel.output_main_cfg_info(self.log, file_update)
                     )
-                    self.text_edit.setPlainText(self.viewModel.get_error_str(log))
-                    self.subplot_data = self.viewModel.loss_packet_analysis(log)
+                    self.text_edit.setPlainText(self.viewModel.get_error_str(self.log))
+                    self.subplot_data = self.viewModel.loss_packet_analysis(self.log)
                     self.plot_canvas.plot_subplots(self.subplot_data)
                 else:
                     GlobalComm.get_langdic_val("error_tip", "Err_NotOpenLog")

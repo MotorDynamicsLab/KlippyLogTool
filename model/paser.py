@@ -59,6 +59,9 @@ class PaserLog:
         cfg_str = self.cfg.extract_newest_config()
         Utilities.save_to_file(cfg_str, save_path="out/klipper.cfg")
         return cfg_str
+    
+    def paser_cfg_info(self):
+        return self.cfg.extract_newest_config()
 
     def paser_shucdown_info(self):
         stats_str = self.cfg.get_stats_shucdown_info()
@@ -94,9 +97,7 @@ class PaserLog:
             {  # Common part
                 "subplots": (2, 1, 1),
                 "title": loss_str,
-                "xlabel": GlobalComm.get_langdic_val(
-                    "analysis_plot_pic", "xlabel_bytes_retransmit"
-                ),
+                "xlabel": intervel,
                 "ylabel": GlobalComm.get_langdic_val(
                     "analysis_plot_pic", "ylabel_bytes_retransmit"
                 ),
