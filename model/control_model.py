@@ -1,10 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor
 import time
 from model.common import GlobalComm, Utilities
-from model.paser import PaserLog
+from model.parse import PaserLog
 
 
-class ControlViewModel:
+class ControlModel:
     def __init__(self):
         self.intervel = int(GlobalComm.setting_json["loss_interval_set"])
         self.mcu_info = ""

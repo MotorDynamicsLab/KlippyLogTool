@@ -1,8 +1,7 @@
-/paser_log/__pycache__
 /out/*
 /logs/*
 /model/__pycache__
 /.tool
-/view/__pycache__/control_view.cpython-39.pyc
 /out
-/view/__pycache__/*.pyc
+/view/__pycache__
+/.vscode/*

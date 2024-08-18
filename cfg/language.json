@@ -64,13 +64,13 @@
             "label_bytes_retransmit": "变化量",
             
             "title_extruder": "extruder温度",
-            "xlabel_extruder": "stats数量",
+            "xlabel_extruder": "stats行间隔",
             "ylabel_extruder": "温度",
             "label_extruder": "温度",
             "label_extruder_target": "目标温度",
 
             "title_bed": "bed温度",
-            "xlabel_bed": "stats数量",
+            "xlabel_bed": "stats行间隔",
             "ylabel_bed": "温度",
             "label_bed": "温度",
             "label_bed_target": "目标温度"

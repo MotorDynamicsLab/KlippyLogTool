@@ -1,0 +1,58 @@
+import mplcursors
+from matplotlib.figure import Figure
+import matplotlib.font_manager as fm
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+
+class PlotCanvas(FigureCanvas):
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        font_path = "C:/Windows/Fonts/simhei.ttf"  # todo,放置到文件中读取
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        super().__init__(self.fig)
+        self.prop = fm.FontProperties(fname=font_path)
+        self.setParent(parent)
+        self.axes = []
+
+    def clear(self, plot_data):
+        if plot_data is not None and len(plot_data) != 0:
+            plot_data.clear()
+        self.axes = []
+        self.fig.clear()
+
+    def common_configure_subplot(self, list_dict):
+        data = list_dict[0]
+        row, col, index = data["subplots"]
+        ax = self.fig.add_subplot(row, col, index)
+        ax.set_title(data["title"], fontproperties=self.prop)
+        ax.set_xlabel(data["xlabel"], fontproperties=self.prop)
+        ax.xaxis.set_label_coords(-0.04, -0.04)
+        ax.set_ylabel(data["ylabel"], fontproperties=self.prop)
+        return ax
+
+    def plot_subplots(self, plot_data_list):
+        for list_dict in plot_data_list:
+            ax = self.common_configure_subplot(list_dict)
+            for index, dict in enumerate(list_dict):
+                if index == 0:
+                    continue  # skip first item
+                ax.plot(
+                    dict["x"],
+                    dict["y"],
+                    label=dict["label"],
+                    color=dict["color"],
+                    linestyle=dict["linestyle"],
+                )
+                ax.legend(loc="upper right", prop=self.prop)
+                self.axes.append(ax)
+
+        cursor = mplcursors.cursor(self.axes, hover=True)
+
+        @cursor.connect("add")
+        def on_add(sel):
+            x, y = sel.target
+            line = sel.artist
+            label = line.get_label()
+            sel.annotation.set_text(f"{label}\nX: {x}\nY: {y}")
+            sel.annotation.set_fontproperties(self.prop)
+
+        self.draw()

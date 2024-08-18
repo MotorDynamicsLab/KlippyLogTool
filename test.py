@@ -1,8 +1,16 @@
-dicts = {"heater_bed": {"target": 60, "temp": 55}}
+import inspect
 
-val_list = []
 
-# 选择一种方法添加多个值
-val_list.extend([dicts["heater_bed"]["target"], dicts["heater_bed"]["temp"]])
+def get_current_function_name():
+    # 获取调用栈
+    stack = inspect.stack()
+    # 返回调用该函数的上一级函数的名称
+    return stack[1].function
 
-print(val_list)  # 输出: [60, 55]
+
+def example_function():
+    function_name = get_current_function_name()
+    print(f"当前函数的名称是: {function_name}")
+
+
+example_function()

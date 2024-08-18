@@ -1,4 +1,5 @@
 import json
+import random
 from PyQt5.QtWidgets import (
     QFileDialog,
     QMessageBox,
@@ -6,6 +7,51 @@ from PyQt5.QtWidgets import (
 import subprocess
 import sys
 import inspect
+
+
+class RandomColor:
+    def __init__(self):
+        self.used_hues = []
+        self.hue_step = 30  # 每次生成颜色之间的最小色调差异
+
+    def random_color(self):
+        while True:
+            # 生成随机的 HSL 颜色
+            h = random.randint(0, 360)
+            s = 100
+            l = 50
+
+            # 检查颜色的色调是否已经被使用过
+            if all(abs(h - used_hue) >= self.hue_step for used_hue in self.used_hues):
+                self.used_hues.append(h)
+                return self.hsl_to_rgb(h, s, l)
+
+    def hsl_to_rgb(self, h, s, l):
+        # h, s, l 都在 [0, 100] 范围内
+        s /= 100
+        l /= 100
+        c = (1 - abs(2 * l - 1)) * s
+        x = c * (1 - abs((h / 60) % 2 - 1))
+        m = l - c / 2
+
+        if 0 <= h < 60:
+            r, g, b = c, x, 0
+        elif 60 <= h < 120:
+            r, g, b = x, c, 0
+        elif 120 <= h < 180:
+            r, g, b = 0, c, x
+        elif 180 <= h < 240:
+            r, g, b = 0, x, c
+        elif 240 <= h < 300:
+            r, g, b = x, 0, c
+        else:
+            r, g, b = c, 0, x
+
+        r = (r + m) * 255
+        g = (g + m) * 255
+        b = (b + m) * 255
+
+        return (r / 255, g / 255, b / 255)
 
 
 class GlobalComm:
