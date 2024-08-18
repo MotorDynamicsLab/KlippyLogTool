@@ -62,19 +62,9 @@ class ControlModel:
         subplot_data = []
         if log != "":
             paser = PaserLog(log)
-            with ThreadPoolExecutor() as executor:
-                futures = {
-                    executor.submit(
-                        paser.analysis_bytes_retransmit, self.intervel
-                    ): "bytes_retransmit",
-                    executor.submit(paser.analysis_bed_temp, self.intervel): "bed_temp",
-                    executor.submit(
-                        paser.analysis_extruder_temp, self.intervel
-                    ): "extruder_temp",
-                }
-                for future in futures:
-                    result = future.result()
-                    subplot_data.append(result)
+            subplot_data.append(paser.analysis_bytes_retransmit(self.intervel))
+            subplot_data.append(paser.analysis_bed_temp(self.intervel))
+            subplot_data.append(paser.analysis_extruder_temp(self.intervel))
 
         return subplot_data
 

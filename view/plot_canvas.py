@@ -12,6 +12,7 @@ class PlotCanvas(FigureCanvas):
         self.prop = fm.FontProperties(fname=font_path)
         self.setParent(parent)
         self.axes = []
+        self.lines = []
 
     def clear(self, plot_data):
         if plot_data is not None and len(plot_data) != 0:
@@ -35,7 +36,7 @@ class PlotCanvas(FigureCanvas):
             for index, dict in enumerate(list_dict):
                 if index == 0:
                     continue  # skip first item
-                ax.plot(
+                (line,) = ax.plot(
                     dict["x"],
                     dict["y"],
                     label=dict["label"],
@@ -44,6 +45,8 @@ class PlotCanvas(FigureCanvas):
                 )
                 ax.legend(loc="upper right", prop=self.prop)
                 self.axes.append(ax)
+                line.set_gid(dict["label"])  # Set the line's label to the group ID
+                self.lines.append((ax, line))  # Store axes and lines
 
         cursor = mplcursors.cursor(self.axes, hover=True)
 
@@ -56,3 +59,10 @@ class PlotCanvas(FigureCanvas):
             sel.annotation.set_fontproperties(self.prop)
 
         self.draw()
+
+        def set_line_visible(self, label, visible):
+            for ax, line in self.lines:
+                if line.get_gid() == label:
+                    line.set_visible(visible)  # 切换线条的可见性
+                    break
+            self.draw()

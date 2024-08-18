@@ -36,8 +36,8 @@ class MainPanel(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
     def menu_init(self):
-        self.menu_bar = self.menuBar()
-        file_menu = self.menu_bar.addMenu(
+        menu_bar = self.menuBar()
+        file_menu = menu_bar.addMenu(
             GlobalComm.get_langdic_val("view", "file_menu")
         )
 
@@ -61,7 +61,7 @@ class MainPanel(QMainWindow):
         file_menu.addAction(action)
 
         # 配置菜单 #
-        set_menu = self.menu_bar.addMenu(GlobalComm.get_langdic_val("view", "set_menu"))
+        set_menu = menu_bar.addMenu(GlobalComm.get_langdic_val("view", "set_menu"))
 
         # 语言转换
         language_menu = set_menu.addMenu(
@@ -93,7 +93,7 @@ class MainPanel(QMainWindow):
         # 关于 #
         about_action = QAction(GlobalComm.get_langdic_val("view", "about"), self)
         about_action.triggered.connect(self.show_about_dialog)
-        self.menu_bar.addAction(about_action)
+        menu_bar.addAction(about_action)
 
     ### 功能函数
     def update_language_ui(self):

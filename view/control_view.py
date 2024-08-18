@@ -58,12 +58,13 @@ class ControlPanel(QWidget):
         loss_packet_analysis_btn.clicked.connect(self.loss_packet_analysis)
         grid_layout.addWidget(loss_packet_analysis_btn, 1, 1)
 
-        loss_packet_monitor_btn = QPushButton(
-            GlobalComm.get_langdic_val("view", "btn_loss_packet_monitor")
-        )
-        loss_packet_monitor_btn.clicked.connect(self.loss_packet_monitor)
-        grid_layout.addWidget(loss_packet_monitor_btn, 1, 2)
-        loss_packet_monitor_btn.setEnabled(False)
+        # todo
+        # loss_packet_monitor_btn = QPushButton(
+        #     GlobalComm.get_langdic_val("view", "btn_loss_packet_monitor")
+        # )
+        # loss_packet_monitor_btn.clicked.connect(self.loss_packet_monitor)
+        # grid_layout.addWidget(loss_packet_monitor_btn, 1, 2)
+        # loss_packet_monitor_btn.setEnabled(False)
 
         # Place a qv box layout page container in the remaining position
         container = QWidget(self)
@@ -72,7 +73,7 @@ class ControlPanel(QWidget):
 
         # Other data
         self.file_index = 0
-        self.fun = None
+        self.analysis_fun = None
 
     def draw_title_label(self, title_str):
         text_label = QLabel(self)
@@ -112,8 +113,8 @@ class ControlPanel(QWidget):
 
     def init_loss_packet_view(self):
         self.file_path = Path(self.file_paths[self.file_index])
-        if self.fun is None or self.fun != self.loss_packet_analysis:
-            self.fun = self.loss_packet_analysis
+        if self.analysis_fun is None or self.analysis_fun != self.loss_packet_analysis:
+            self.analysis_fun = self.loss_packet_analysis
             self.clear_container()
 
             # Packet loss graph
@@ -142,8 +143,11 @@ class ControlPanel(QWidget):
 
     def init_comprehensive_view(self):
         # Clear previous display
-        if self.fun is None or self.fun != self.comprehensive_analysis:
-            self.fun = self.comprehensive_analysis
+        if (
+            self.analysis_fun is None
+            or self.analysis_fun != self.comprehensive_analysis
+        ):
+            self.analysis_fun = self.comprehensive_analysis
             self.clear_container()
 
             # Add analysis chart
@@ -253,19 +257,20 @@ class ControlPanel(QWidget):
         Utilities.show_error_msg(f"分析错误: {error}")
         self.loading_view.stop_loading_gif()
 
-    def loss_packet_monitor(self):
-        pass
+    # todo
+    # def loss_packet_monitor(self):
+    #     pass
 
     def show_previous_plot(self):
         file_cnt = len(self.file_paths) - 1
 
         if file_cnt >= self.file_index and self.file_index > 0:
             self.file_index -= 1
-            self.fun()
+            self.analysis_fun()
 
     def show_next_plot(self):
         file_cnt = len(self.file_paths) - 1
 
         if file_cnt > self.file_index and self.file_index >= 0:
             self.file_index += 1
-            self.fun()
+            self.analysis_fun()

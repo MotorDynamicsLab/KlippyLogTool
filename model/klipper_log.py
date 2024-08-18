@@ -112,10 +112,8 @@ class LogStats:
 
         self.__generate_stats_list()
         list_dict = []
-
-        with ThreadPoolExecutor() as executor:
-            results = executor.map(self.__parse_stats_key_info, self.stats_list)
-            list_dict = list(results)
+        for stats_line in self.stats_list:
+            list_dict.append(self.__parse_stats_key_info(stats_line))
 
         self._cached_stats_dicts = list_dict
         return list_dict
@@ -133,9 +131,16 @@ class LogStats:
 
     def get_bytes_retransmit_incremental_list(self, interval, list_dicts):
         try:
-            from concurrent.futures import ThreadPoolExecutor
+            i = 0
+            list_retransmit_mcus = []
+            mcu_list = self.get_mcu_list(list_dicts)
+            cur_val = {}
+            max_val = {}
+            min_val = {}
+            for mcu in mcu_list:
+                max_val[mcu] = min_val[mcu] = 0
 
-            def process_dicts(dicts, mcu_list, cur_val, max_val, min_val):
+            for dicts in list_dicts:
                 for mcu in mcu_list:
                     if mcu in dicts:
                         cur_val[mcu] = int(dicts[mcu]["bytes_retransmit"])
@@ -146,41 +151,29 @@ class LogStats:
                     if cur_val[mcu] > max_val[mcu]:
                         max_val[mcu] = cur_val[mcu]
 
-            i = 0
-            list_retransmit_mcus = []
-            mcu_list = self.get_mcu_list(list_dicts)
-            cur_val = {}
-            max_val = {}
-            min_val = {}
-            for mcu in mcu_list:
-                max_val[mcu] = min_val[mcu] = 0
-
-            with ThreadPoolExecutor() as executor:
-                for dicts in list_dicts:
-                    executor.submit(
-                        process_dicts, dicts, mcu_list, cur_val, max_val, min_val
-                    )
-
-                    i += 1
-                    if interval == i:
-                        i = 0
-                        temp_list = []
-                        for mcu in mcu_list:
-                            temp_list.append(max_val[mcu] - min_val[mcu])
-                            max_val[mcu] = min_val[mcu] = cur_val[mcu]
-                        list_retransmit_mcus.append(temp_list)
+                i += 1
+                if interval == i:
+                    i = 0
+                    temp_list = []
+                    for mcu in mcu_list:
+                        temp_list.append(max_val[mcu] - min_val[mcu])
+                        # Starting from the last result
+                        max_val[mcu] = min_val[mcu] = cur_val[mcu]
+                    list_retransmit_mcus.append(temp_list)
 
             if len(list_dicts) % interval != 0:
                 temp_list = []
                 for mcu in mcu_list:
                     temp_list.append(max_val[mcu] - min_val[mcu])
+                    # Starting from the last result
                     max_val[mcu] = min_val[mcu] = cur_val[mcu]
                 list_retransmit_mcus.append(temp_list)
 
+            # print(list_retransmit_mcus, len(list_retransmit))
             return list_retransmit_mcus, mcu_list
 
         except Exception as e:
-            print("Exception get_bytes_retransmit_incremental_list: ", e)
+            print("异常 get_bytes_retransmit_incremental_list：", e)
 
     def get_target_temp_list(self, interval, list_dicts):
         try:
