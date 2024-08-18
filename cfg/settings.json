@@ -2,6 +2,7 @@
     "language": "zh",
     "loss_interval_set": "100",
     "cfg_setting": "cfg/settings.json",
+    "loading_gif": "cfg/loading.gif",
     "klipper_cfg": "out/klipper.cfg",
     "dir_out": "out",
     "dir_cfg": "cfg",

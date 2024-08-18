@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
-from model.common import GlobalComm
+import time
+from model.common import GlobalComm, Utilities
 from model.paser import PaserLog
 
 
@@ -61,7 +62,6 @@ class ControlViewModel:
         subplot_data = []
         if log != "":
             paser = PaserLog(log)
-
             with ThreadPoolExecutor() as executor:
                 futures = {
                     executor.submit(
@@ -84,3 +84,20 @@ class ControlViewModel:
             paser = PaserLog(log)
             subplot_data.append(paser.analysis_bytes_retransmit(self.intervel))
         return subplot_data
+
+    def save_files(self, path, only_cfg=False):
+        log = ""
+        with open(path, "r", encoding="utf-8") as file:
+            log = file.read()
+
+        if only_cfg:
+            self.output_analysis_result(log)
+        else:
+            self.output_cfg(log)
+
+    def update_current_log(self, cur_file_path, cur_newest_path):
+        log = ""
+        if cur_file_path != cur_newest_path:
+            with open(cur_newest_path, "r", encoding="utf-8") as file:
+                log = file.read()
+        return log

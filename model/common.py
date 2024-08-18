@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
 )
 import subprocess
 import sys
+import inspect
 
 
 class GlobalComm:
@@ -85,3 +86,8 @@ class Utilities:
         msg.setWindowTitle("Error")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
+
+    @staticmethod
+    def get_current_function_name():
+        stack = inspect.stack()
+        return stack[1].function

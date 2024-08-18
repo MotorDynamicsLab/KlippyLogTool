@@ -7,15 +7,19 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QTextEdit,
-    QScrollArea,
     QLabel,
     QSizePolicy,
+    QFrame,
 )
+from PyQt5.QtGui import QMovie
 import mplcursors
-
+from model.analysis_thread import AnalysisThread
 from model.common import GlobalComm, Utilities
 from model.control_view_model import ControlViewModel
 import matplotlib.font_manager as fm
+from PyQt5.QtCore import QThread, pyqtSignal, Qt
+
+from view.loading_view import LoadingPanel
 
 
 class PlotCanvas(FigureCanvas):
@@ -80,10 +84,15 @@ class ControlPanel(QWidget):
         self.subplot_data = []
         self.file_paths = ["logs/klippy.log"]
         self.cur_file_path = ""
+        self.log = ""
 
-        self.viewModel = ControlViewModel()
+        self.loading_view = LoadingPanel(self)
+        self.view_model = ControlViewModel()
         self.init_widget()
 
+    ############################
+    #  Interface related #
+    ############################
     def init_widget(self):
         grid_layout = QGridLayout(self)
         self.setLayout(grid_layout)
@@ -122,7 +131,6 @@ class ControlPanel(QWidget):
         self.file_index = 0
         self.fun = None
 
-    # Interface related #
     def draw_title_label(self, title_str):
         text_label = QLabel(self)
         text_label.setText(title_str)
@@ -159,7 +167,51 @@ class ControlPanel(QWidget):
         self.convas_gird.addWidget(button_next, 0, 2)
         return canvas_widget
 
-    # Function function
+    def init_loss_packet_view(self):
+        self.file_path = Path(self.file_paths[self.file_index])
+        if self.fun is None or self.fun != self.loss_packet_analysis:
+            self.fun = self.loss_packet_analysis
+            self.clear_container()
+
+            # Packet loss graph
+            self.file_title_label = self.draw_title_label(self.file_path.name)
+            self.container_layout.addWidget(self.file_title_label)
+
+            canvas_widget = self.draw_analytical_diagram()
+            self.container_layout.addWidget(canvas_widget)
+
+            # Error message
+            title_label = self.draw_title_label(
+                GlobalComm.get_langdic_val("analysis_plot_pic", "title_error_tip_label")
+            )
+            self.container_layout.addWidget(title_label)
+            self.container_layout.addWidget(self.draw_error_tip())
+
+            # Add main cfg information
+            title_label = self.draw_title_label(
+                GlobalComm.get_langdic_val("analysis_plot_pic", "title_cfg_tip_label")
+            )
+            self.container_layout.addWidget(title_label)
+            cfg_main_edit = self.draw_cfg_main_info()
+            self.container_layout.addWidget(cfg_main_edit)
+
+        self.loading_view.init_loading_QFrame()
+
+    def init_comprehensive_view(self):
+        # Clear previous display
+        if self.fun is None or self.fun != self.comprehensive_analysis:
+            self.fun = self.comprehensive_analysis
+            self.clear_container()
+
+            # Add analysis chart
+            canvas_widget = self.draw_analytical_diagram()
+            self.container_layout.addWidget(canvas_widget)
+
+        self.loading_view.init_loading_QFrame()
+
+    ############################
+    ## Function function
+    ############################
     def clear_container(self):
         for i in reversed(range(self.container_layout.count())):
             widget = self.container_layout.itemAt(i).widget()
@@ -167,19 +219,24 @@ class ControlPanel(QWidget):
                 widget.deleteLater()
 
     def save_some_files(self, only_cfg=False):
-        log = ""
-        with open(self.file_paths[self.file_index], "r", encoding="utf-8") as file:
-            log = file.read()
-
-        if only_cfg:
-            self.viewModel.output_analysis_result(log)
-        else:
-            self.viewModel.output_cfg(log)
+        self.view_model.save_files(self.file_paths[self.file_index], only_cfg)
 
     def set_analysis_intervel(self, intervel):
-        self.viewModel.set_intervel(intervel)
+        self.view_model.set_intervel(intervel)
 
+    def update_cur_log(self):
+        if len(self.file_paths) > 0:
+            log = self.view_model.update_current_log(
+                self.cur_file_path, self.file_paths[self.file_index]
+            )
+
+            if log != "":
+                self.cur_file_path = self.file_paths[self.file_index]
+                self.log = log
+
+    #############################
     # event handling #
+    ############################
     def open_log(self):
         file_paths = Utilities.get_file_paths(self)
         if len(file_paths) != 0:
@@ -188,94 +245,70 @@ class ControlPanel(QWidget):
 
     def comprehensive_analysis(self):
         try:
-            # Clear previous display
-            if self.fun is None or self.fun != self.comprehensive_analysis:
-                self.fun = self.comprehensive_analysis
-                self.clear_container()
-                canvas_widget = self.draw_analytical_diagram()
-                self.container_layout.addWidget(canvas_widget)
+            # init display
+            self.init_comprehensive_view()
+            self.loading_view.run_loading_git()
 
             # parse log
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
-                if len(self.file_paths) > 0:
-                    if self.cur_file_path != self.file_paths[self.file_index]:
-                        self.log = ""
-                        self.cur_file_path = self.file_paths[self.file_index]
-                        with open(
-                            self.file_paths[self.file_index], "r", encoding="utf-8"
-                        ) as file:
-                            self.log = file.read()
+                self.update_cur_log()
 
-                    self.subplot_data = self.viewModel.comprehensive_analysis(self.log)
-                    self.plot_canvas.plot_subplots(self.subplot_data)
-                else:
-                    Utilities.show_error_msg(
-                        GlobalComm.get_langdic_val("error_tip", "Err_NotOpenLog")
-                    )
+                # Create and start analysis thread
+                analysis_thread = AnalysisThread(
+                    self.log, self.view_model, Utilities.get_current_function_name()
+                )
+                analysis_thread.bind_event(
+                    self.on_analysis_complete, self.on_error_occurred
+                )
+                analysis_thread.start()
         except Exception as e:
-            error = f"exceptions: {e}"  # todo, 显示错乱当报异常时
+            error = f"comprehensive_analysis exceptions: {e}"
             Utilities.show_error_msg(error)
 
     def loss_packet_analysis(self):
         try:
-            # Clear previous display
-            file_path = Path(self.file_paths[self.file_index])
-            if self.fun is None or self.fun != self.loss_packet_analysis:
-                self.fun = self.loss_packet_analysis
-                self.clear_container()
-
-                # Packet loss graph
-                self.file_title_label = self.draw_title_label(file_path.name)
-                self.container_layout.addWidget(self.file_title_label)
-
-                canvas_widget = self.draw_analytical_diagram()
-                self.container_layout.addWidget(canvas_widget)
-
-                # Error message
-                title_label = self.draw_title_label(
-                    GlobalComm.get_langdic_val(
-                        "analysis_plot_pic", "title_error_tip_label"
-                    )
-                )
-                self.container_layout.addWidget(title_label)
-
-                self.container_layout.addWidget(self.draw_error_tip())
-
-                title_label = self.draw_title_label(
-                    GlobalComm.get_langdic_val(
-                        "analysis_plot_pic", "title_cfg_tip_label"
-                    )
-                )
-                self.container_layout.addWidget(title_label)
-                scroll_area = self.draw_cfg_main_info()
-                self.container_layout.addWidget(scroll_area)
+            # init display
+            self.init_loss_packet_view()
+            self.loading_view.run_loading_git()
 
             # parse log
-            file_update = self.cur_file_path != self.file_paths[self.file_index]
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
-                if len(self.file_paths) > 0:
-                    if file_update:
-                        self.log = ""
-                        self.cur_file_path = self.file_paths[self.file_index]
-                        with open(
-                            self.file_paths[self.file_index], "r", encoding="utf-8"
-                        ) as file:
-                            self.log = file.read()
+                self.file_update = self.update_cur_log() != ""
 
-                    self.file_title_label.setText(file_path.name)
-                    self.cfg_main_edit.setPlainText(
-                        self.viewModel.output_main_cfg_info(self.log, file_update)
-                    )
-                    self.text_edit.setPlainText(self.viewModel.get_error_str(self.log))
-                    self.subplot_data = self.viewModel.loss_packet_analysis(self.log)
-                    self.plot_canvas.plot_subplots(self.subplot_data)
-                else:
-                    GlobalComm.get_langdic_val("error_tip", "Err_NotOpenLog")
+                # todo 这部分的页面更新清理掉到别处
+                self.file_title_label.setText(self.file_path.name)
+                self.cfg_main_edit.setPlainText(
+                    self.view_model.output_main_cfg_info(self.log, self.file_update)
+                )
+                self.text_edit.setPlainText(self.view_model.get_error_str(self.log))
+
+                # Create and start analysis thread
+                analysis_thread = AnalysisThread(
+                    self.log, self.view_model, Utilities.get_current_function_name()
+                )
+                analysis_thread.bind_event(
+                    self.on_analysis_complete, self.on_error_occurred
+                )
+                analysis_thread.start()
+
         except Exception as e:
             error = f"exceptions: {e}"  # todo, 显示错乱当报异常时
             Utilities.show_error_msg(error)
+
+    def on_analysis_complete(self, result, task_type):
+        if task_type == "comprehensive_analysis":
+            pass
+        elif task_type == "loss_packet_analysis":
+            pass
+        self.subplot_data = result
+        self.plot_canvas.plot_subplots(self.subplot_data)
+        self.loading_view.stop_loading_gif()
+
+    def on_error_occurred(self, error):
+        Utilities.show_error_msg(f"分析错误: {error}")
+        self.loading_view.stop_loading_gif()
 
     def loss_packet_monitor(self):
         pass

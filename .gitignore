@@ -5,3 +5,4 @@
 /.tool
 /view/__pycache__/control_view.cpython-39.pyc
 /out
+/view/__pycache__/*.pyc

@@ -130,12 +130,6 @@ class MainPanel(QMainWindow):
         )  # Save the selected language
         self.update_language_ui()
 
-    def connect_check(self):
-        pass
-
-    def printer_check(self):
-        pass
-
     def show_input_dialog(self):
         # Show an input dialog to get user input
         text, ok = QInputDialog.getText(
