@@ -38,6 +38,7 @@ class PlotCanvas(FigureCanvas):
         self.draw()
 
     def plot_subplots(self, plot_data_list):
+        self.lines.clear()
         for list_dict in plot_data_list:
             ax = self.common_configure_subplot(list_dict)
             for index, dict in enumerate(list_dict):

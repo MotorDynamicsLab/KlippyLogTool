@@ -147,7 +147,7 @@ class ControlPanel(QWidget):
             self.analysis_fun = self.loss_packet_analysis
             self.clear_container()
 
-            # file name
+            # current file name
             self.file_title_label = self.draw_title_label(self.file_path.name)
             self.container_layout.addWidget(self.file_title_label)
 
@@ -188,7 +188,7 @@ class ControlPanel(QWidget):
             self.analysis_fun = self.comprehensive_analysis
             self.clear_container()
 
-            # Packet loss graph
+            # current file name
             self.file_title_label = self.draw_title_label(self.file_path.name)
             self.container_layout.addWidget(self.file_title_label)
 
@@ -260,6 +260,8 @@ class ControlPanel(QWidget):
             # parse log
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
+
+                self.file_title_label.setText(self.file_path.name)
 
                 # Create and start analysis thread
                 analysis_thread = AnalysisThread(
