@@ -15,6 +15,9 @@ class AnalysisThread(QThread):
         self.analysis_complete.connect(complete_event)
         self.error_occurred.connect(error_event)
 
+    def stop(self):
+        self.wait()
+
     def run(self):
         try:
             if self.task_type == "comprehensive_analysis":

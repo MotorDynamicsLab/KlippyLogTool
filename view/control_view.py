@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 from PyQt5.QtWidgets import (
     QWidget,
     QGridLayout,
@@ -7,7 +8,8 @@ from PyQt5.QtWidgets import (
     QTextEdit,
     QLabel,
     QSizePolicy,
-    QFrame,
+    QCheckBox,
+    QHBoxLayout,
 )
 from PyQt5.QtGui import QMovie
 from model.analysis_thread import AnalysisThread
@@ -59,12 +61,12 @@ class ControlPanel(QWidget):
         grid_layout.addWidget(loss_packet_analysis_btn, 1, 1)
 
         # todo
-        # loss_packet_monitor_btn = QPushButton(
-        #     GlobalComm.get_langdic_val("view", "btn_loss_packet_monitor")
-        # )
-        # loss_packet_monitor_btn.clicked.connect(self.loss_packet_monitor)
-        # grid_layout.addWidget(loss_packet_monitor_btn, 1, 2)
-        # loss_packet_monitor_btn.setEnabled(False)
+        loss_packet_monitor_btn = QPushButton(
+            GlobalComm.get_langdic_val("view", "btn_loss_packet_monitor")
+        )
+        loss_packet_monitor_btn.clicked.connect(self.loss_packet_monitor)
+        grid_layout.addWidget(loss_packet_monitor_btn, 1, 2)
+        loss_packet_monitor_btn.setEnabled(False)
 
         # Place a qv box layout page container in the remaining position
         container = QWidget(self)
@@ -106,21 +108,54 @@ class ControlPanel(QWidget):
         canvas_widget = QWidget(self)
         self.plot_canvas = PlotCanvas(self, width=5, height=7)
         self.convas_gird = QGridLayout(canvas_widget)
+
         self.convas_gird.addWidget(button_prev, 0, 0)
         self.convas_gird.addWidget(self.plot_canvas, 0, 1)
         self.convas_gird.addWidget(button_next, 0, 2)
         return canvas_widget
 
+    def draw_mcu_line_check_btn(self):
+        mcu_list = self.model.get_mcu_list(self.log)
+        check_button_widget = QWidget(self)
+        self.hbox_layout = QHBoxLayout(check_button_widget)
+        for mcu in mcu_list:
+            check_button = QCheckBox(mcu, self)
+            check_button.stateChanged.connect(self.set_line_visible)
+            check_button.setChecked(True)
+            self.hbox_layout.addWidget(check_button)
+        return check_button_widget
+
+    def reload_check_btn(self):
+        while self.hbox_layout.count():
+            item = self.hbox_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        mcu_list = self.model.get_mcu_list(self.log)
+        for mcu in mcu_list:
+            check_button = QCheckBox(mcu, self)
+            check_button.stateChanged.connect(self.set_line_visible)
+            check_button.setChecked(True)
+            self.hbox_layout.addWidget(check_button)
+
     def init_loss_packet_view(self):
+
         self.file_path = Path(self.file_paths[self.file_index])
+
         if self.analysis_fun is None or self.analysis_fun != self.loss_packet_analysis:
             self.analysis_fun = self.loss_packet_analysis
             self.clear_container()
 
-            # Packet loss graph
+            # file name
             self.file_title_label = self.draw_title_label(self.file_path.name)
             self.container_layout.addWidget(self.file_title_label)
 
+            # Show and hide lines
+            check_button_widget = self.draw_mcu_line_check_btn()
+            self.container_layout.addWidget(check_button_widget)
+
+            # Packet loss graph
             canvas_widget = self.draw_analytical_diagram()
             self.container_layout.addWidget(canvas_widget)
 
@@ -138,11 +173,14 @@ class ControlPanel(QWidget):
             self.container_layout.addWidget(title_label)
             cfg_main_edit = self.draw_cfg_main_info()
             self.container_layout.addWidget(cfg_main_edit)
+        else:
+            self.reload_check_btn()
 
         self.loading_view.init_loading_QFrame()
 
     def init_comprehensive_view(self):
-        # Clear previous display
+
+        self.file_path = Path(self.file_paths[self.file_index])
         if (
             self.analysis_fun is None
             or self.analysis_fun != self.comprehensive_analysis
@@ -150,15 +188,32 @@ class ControlPanel(QWidget):
             self.analysis_fun = self.comprehensive_analysis
             self.clear_container()
 
+            # Packet loss graph
+            self.file_title_label = self.draw_title_label(self.file_path.name)
+            self.container_layout.addWidget(self.file_title_label)
+
+            # Show and hide lines
+            check_button_widget = self.draw_mcu_line_check_btn()
+            self.container_layout.addWidget(check_button_widget)
+
             # Add analysis chart
             canvas_widget = self.draw_analytical_diagram()
             self.container_layout.addWidget(canvas_widget)
+        else:
+            self.reload_check_btn()
 
         self.loading_view.init_loading_QFrame()
 
     ############################
     ## Function function
     ############################
+    def set_line_visible(self):
+        check_button = self.sender()
+        if hasattr(self, "plot_canvas"):
+            self.plot_canvas.set_line_visible(
+                check_button.text(), check_button.isChecked()
+            )
+
     def clear_container(self):
         for i in reversed(range(self.container_layout.count())):
             widget = self.container_layout.itemAt(i).widget()
@@ -190,16 +245,21 @@ class ControlPanel(QWidget):
             self.file_paths = file_paths
             self.file_index = 0
 
+    def stop_thread(self):
+        if self.analysis_thread.isRunning():
+            self.analysis_thread.stop()
+
     def comprehensive_analysis(self):
         try:
             # init display
+            self.update_cur_log()
             self.init_comprehensive_view()
+
             self.loading_view.run_loading_git()
 
             # parse log
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
-                self.update_cur_log()
 
                 # Create and start analysis thread
                 analysis_thread = AnalysisThread(
@@ -210,19 +270,22 @@ class ControlPanel(QWidget):
                 )
                 analysis_thread.start()
         except Exception as e:
-            error = f"comprehensive_analysis exceptions: {e}"
+            error = f"def comprehensive_analysis exceptions: {e}"
+            print(error)
+            # self.loading_view.stop_loading_gif()
             Utilities.show_error_msg(error)
 
     def loss_packet_analysis(self):
         try:
             # init display
+            self.file_update = self.update_cur_log() != ""
             self.init_loss_packet_view()
+
             self.loading_view.run_loading_git()
 
             # parse log
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
-                self.file_update = self.update_cur_log() != ""
 
                 # todo 这部分的页面更新清理掉到别处
                 self.file_title_label.setText(self.file_path.name)
@@ -232,16 +295,18 @@ class ControlPanel(QWidget):
                 self.text_edit.setPlainText(self.model.get_error_str(self.log))
 
                 # Create and start analysis thread
-                analysis_thread = AnalysisThread(
+                self.analysis_thread = AnalysisThread(
                     self.log, self.model, Utilities.get_current_function_name()
                 )
-                analysis_thread.bind_event(
+                self.analysis_thread.bind_event(
                     self.on_analysis_complete, self.on_error_occurred
                 )
-                analysis_thread.start()
+                self.analysis_thread.start()
 
         except Exception as e:
-            error = f"exceptions: {e}"  # todo, 显示错乱当报异常时
+            error = f"def loss_packet_analysis exceptions: {e}"
+            print(error)
+            # self.loading_view.stop_loading_gif()
             Utilities.show_error_msg(error)
 
     def on_analysis_complete(self, result, task_type):
@@ -258,8 +323,8 @@ class ControlPanel(QWidget):
         self.loading_view.stop_loading_gif()
 
     # todo
-    # def loss_packet_monitor(self):
-    #     pass
+    def loss_packet_monitor(self):
+        pass
 
     def show_previous_plot(self):
         file_cnt = len(self.file_paths) - 1

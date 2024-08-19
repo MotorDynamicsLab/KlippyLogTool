@@ -30,6 +30,13 @@ class PlotCanvas(FigureCanvas):
         ax.set_ylabel(data["ylabel"], fontproperties=self.prop)
         return ax
 
+    def set_line_visible(self, label, visible):
+        for ax, line in self.lines:
+            if line.get_gid() == label:
+                line.set_visible(visible)  # 切换线条的可见性
+                break
+        self.draw()
+
     def plot_subplots(self, plot_data_list):
         for list_dict in plot_data_list:
             ax = self.common_configure_subplot(list_dict)
@@ -59,10 +66,3 @@ class PlotCanvas(FigureCanvas):
             sel.annotation.set_fontproperties(self.prop)
 
         self.draw()
-
-        def set_line_visible(self, label, visible):
-            for ax, line in self.lines:
-                if line.get_gid() == label:
-                    line.set_visible(visible)  # 切换线条的可见性
-                    break
-            self.draw()

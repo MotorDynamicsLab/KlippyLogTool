@@ -37,9 +37,7 @@ class MainPanel(QMainWindow):
 
     def menu_init(self):
         menu_bar = self.menuBar()
-        file_menu = menu_bar.addMenu(
-            GlobalComm.get_langdic_val("view", "file_menu")
-        )
+        file_menu = menu_bar.addMenu(GlobalComm.get_langdic_val("view", "file_menu"))
 
         # 文件菜单 #
         action = QAction(
@@ -162,6 +160,10 @@ class MainPanel(QMainWindow):
 
     def exit_app(self):
         QApplication.quit()
+
+    def closeEvent(self, event):
+        self.central_widget.stop_thread()  # 在关闭窗口时停止线程
+        event.accept()
 
 
 if __name__ == "__main__":

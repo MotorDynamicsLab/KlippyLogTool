@@ -33,6 +33,10 @@ class PaserLog:
         Utilities.save_to_file(stats_str, save_path="out/stats.txt")
         return stats_str
 
+    def paser_mcu(self):
+        list_dicts = self.stats.get_stats_dicts()
+        return self.stats.get_mcu_list(list_dicts)
+
     # Analyze and generate charts
     def analysis_bytes_retransmit(self, intervel):
         # todo 分析文本 , 以mcu分离多个变化线

@@ -33,6 +33,12 @@ class ControlModel:
             return paser.paser_cfg_info()
         return ""
 
+    def get_mcu_list(self, log):
+        if log != "":
+            paser = PaserLog(log)
+            return paser.paser_mcu()
+        return []
+
     def output_main_cfg_info(self, log, file_update):
         if file_update or self.mcu_info == "":
             cfg = self.get_cfg_info(log)
