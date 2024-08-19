@@ -2,7 +2,7 @@ from PyQt5.QtCore import QThread, pyqtSignal, Qt
 
 
 class AnalysisThread(QThread):
-    analysis_complete = pyqtSignal(list, str)  # 信号用于传递结果
+    analysis_complete = pyqtSignal(list, str, list)  # 信号用于传递结果
     error_occurred = pyqtSignal(str)  # 信号用于传递错误信息
 
     def __init__(self, log, view_model, task_type, *args, **kwargs):
@@ -24,6 +24,10 @@ class AnalysisThread(QThread):
                 result = self.view_model.comprehensive_analysis(self.log)
             elif self.task_type == "loss_packet_analysis":
                 result = self.view_model.loss_packet_analysis(self.log)
-            self.analysis_complete.emit(result, self.task_type)  # 发射完成信号
+
+            mcu_list = self.view_model.get_mcu_list(self.log)
+            self.analysis_complete.emit(
+                result, self.task_type, mcu_list
+            )  # 发射完成信号
         except Exception as e:
             self.error_occurred.emit(str(e))  # 发射错误信号

@@ -27,7 +27,7 @@ class ControlPanel(QWidget):
         super(ControlPanel, self).__init__(parent)
 
         self.subplot_data = []
-        self.file_paths = ["logs/klippy.log"]
+        self.file_paths = ["logs/Jango.log"]
         self.cur_file_path = ""
         self.log = ""
 
@@ -114,25 +114,25 @@ class ControlPanel(QWidget):
         self.convas_gird.addWidget(button_next, 0, 2)
         return canvas_widget
 
+    # To Pre-occupy the location of the picture
     def draw_mcu_line_check_btn(self):
-        mcu_list = self.model.get_mcu_list(self.log)
         check_button_widget = QWidget(self)
         self.hbox_layout = QHBoxLayout(check_button_widget)
-        for mcu in mcu_list:
-            check_button = QCheckBox(mcu, self)
-            check_button.stateChanged.connect(self.set_line_visible)
-            check_button.setChecked(True)
-            self.hbox_layout.addWidget(check_button)
+        check_button = QCheckBox(
+            "mcu", self
+        )  # Refresh the real quantity via reload_check_btn
+        check_button.stateChanged.connect(self.set_line_visible)
+        check_button.setChecked(True)
+        self.hbox_layout.addWidget(check_button)
         return check_button_widget
 
-    def reload_check_btn(self):
+    def reload_check_btn(self, mcu_list):
         while self.hbox_layout.count():
             item = self.hbox_layout.takeAt(0)
             widget = item.widget()
             if widget is not None:
                 widget.deleteLater()
 
-        mcu_list = self.model.get_mcu_list(self.log)
         for mcu in mcu_list:
             check_button = QCheckBox(mcu, self)
             check_button.stateChanged.connect(self.set_line_visible)
@@ -173,8 +173,6 @@ class ControlPanel(QWidget):
             self.container_layout.addWidget(title_label)
             cfg_main_edit = self.draw_cfg_main_info()
             self.container_layout.addWidget(cfg_main_edit)
-        else:
-            self.reload_check_btn()
 
         self.loading_view.init_loading_QFrame()
 
@@ -199,21 +197,12 @@ class ControlPanel(QWidget):
             # Add analysis chart
             canvas_widget = self.draw_analytical_diagram()
             self.container_layout.addWidget(canvas_widget)
-        else:
-            self.reload_check_btn()
 
         self.loading_view.init_loading_QFrame()
 
     ############################
     ## Function function
     ############################
-    def set_line_visible(self):
-        check_button = self.sender()
-        if hasattr(self, "plot_canvas"):
-            self.plot_canvas.set_line_visible(
-                check_button.text(), check_button.isChecked()
-            )
-
     def clear_container(self):
         for i in reversed(range(self.container_layout.count())):
             widget = self.container_layout.itemAt(i).widget()
@@ -239,6 +228,13 @@ class ControlPanel(QWidget):
     #############################
     # event handling #
     ############################
+    def set_line_visible(self):
+        check_button = self.sender()
+        if hasattr(self, "plot_canvas"):
+            self.plot_canvas.set_line_visible(
+                check_button.text(), check_button.isChecked()
+            )
+
     def open_log(self):
         file_paths = Utilities.get_file_paths(self)
         if len(file_paths) != 0:
@@ -264,13 +260,13 @@ class ControlPanel(QWidget):
                 self.file_title_label.setText(self.file_path.name)
 
                 # Create and start analysis thread
-                analysis_thread = AnalysisThread(
+                self.analysis_thread = AnalysisThread(
                     self.log, self.model, Utilities.get_current_function_name()
                 )
-                analysis_thread.bind_event(
+                self.analysis_thread.bind_event(
                     self.on_analysis_complete, self.on_error_occurred
                 )
-                analysis_thread.start()
+                self.analysis_thread.start()
         except Exception as e:
             error = f"def comprehensive_analysis exceptions: {e}"
             print(error)
@@ -311,12 +307,13 @@ class ControlPanel(QWidget):
             # self.loading_view.stop_loading_gif()
             Utilities.show_error_msg(error)
 
-    def on_analysis_complete(self, result, task_type):
+    def on_analysis_complete(self, result, task_type, mcu_list):
         if task_type == "comprehensive_analysis":
             pass
         elif task_type == "loss_packet_analysis":
             pass
         self.subplot_data = result
+        self.reload_check_btn(mcu_list)
         self.plot_canvas.plot_subplots(self.subplot_data)
         self.loading_view.stop_loading_gif()
 
