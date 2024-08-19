@@ -120,8 +120,9 @@ class LogStats:
 
     def get_mcu_list(self, list_dicts):
         mcu = []
-        if len(list_dicts) != 0:
-            dicts = list_dicts[0]
+        list_dicts_cnt = len(list_dicts)
+        if list_dicts_cnt != 0:
+            dicts = list_dicts[list_dicts_cnt - 1]
             for module, data in dicts.items():
                 if isinstance(data, dict):
                     for key, value in data.items():
@@ -138,12 +139,15 @@ class LogStats:
             max_val = {}
             min_val = {}
             for mcu in mcu_list:
-                max_val[mcu] = min_val[mcu] = 0
+                cur_val[mcu] = max_val[mcu] = min_val[mcu] = 0
 
             for dicts in list_dicts:
                 for mcu in mcu_list:
                     if mcu in dicts:
-                        cur_val[mcu] = int(dicts[mcu]["bytes_retransmit"])
+                        try:
+                            cur_val[mcu] = int(dicts[mcu]["bytes_retransmit"])
+                        except Exception:
+                            pass
 
                     if cur_val[mcu] < min_val[mcu]:
                         min_val[mcu] = cur_val[mcu]
@@ -157,6 +161,7 @@ class LogStats:
                     temp_list = []
                     for mcu in mcu_list:
                         temp_list.append(max_val[mcu] - min_val[mcu])
+
                         # Starting from the last result
                         max_val[mcu] = min_val[mcu] = cur_val[mcu]
                     list_retransmit_mcus.append(temp_list)
@@ -164,7 +169,10 @@ class LogStats:
             if len(list_dicts) % interval != 0:
                 temp_list = []
                 for mcu in mcu_list:
-                    temp_list.append(max_val[mcu] - min_val[mcu])
+                    try:
+                        temp_list.append(max_val[mcu] - min_val[mcu])
+                    except Exception:
+                        pass
                     # Starting from the last result
                     max_val[mcu] = min_val[mcu] = cur_val[mcu]
                 list_retransmit_mcus.append(temp_list)
@@ -173,7 +181,7 @@ class LogStats:
             return list_retransmit_mcus, mcu_list
 
         except Exception as e:
-            print("异常 get_bytes_retransmit_incremental_list：", e)
+            print("exception def get_bytes_retransmit_incremental_list：", e)
 
     def get_target_temp_list(self, interval, list_dicts):
         try:
