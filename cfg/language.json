@@ -1,20 +1,58 @@
 
 {
     "en": {
-        "view" : {
-            "title": "Log analysis tools",
+        "view": {
+            "title": "Log Analysis Tool",
             "file_menu": "File",
-            "file_menu_out": "",
-            "open": "Open",
-            "exit": "Exit",
-            "edit_menu": "Edit",
-            "sub_menu": "More Options",
-            "sub_sub_menu": "Sub Options",
-            "input_prompt": "Enter a numeric value:",
-            "input_received": "Input Received",
-            "input_warning": "Please enter a valid numeric value.",
+            "file_menu_mid_result": "Save and Open Out Folder",
+            "file_menu_klipper_cfg": "Open klipper.cfg",
+            "file_menu_klipper_log": "Open Current Log",
+            "file_menu_stats_log": "Open Stats File",
+            "file_check_print": "Check Print Count",
+            "file_menu_exit": "Exit",
+            "check_title": "Check",
+            "connect_check": "Connected Before",
+            "printer_check": "Printed Before",
+            "set_menu": "Settings",
+            "set_menu_language": "Language",
+            "set_menu_language_en": "English",
+            "set_menu_language_ch": "Chinese",
+            "set_menu_loss_set": "Packet Loss Interval Settings",
             "about": "About",
-            "about_text": "This is an example application to demonstrate language switching and input dialogs."
+            "dialog_about_title": "About",
+            "about_text": "\nCopyright © 2023-{3} Landeo Intelligent Control Technology Co., Ltd. All rights reserved.",
+            "btn_open_log": "Open Log",
+            "btn_comprehensive_analysis": "Comprehensive Analysis",
+            "btn_loss_packet_analysis": "Packet Loss Analysis",
+            "btn_loss_packet_monitor": "Packet Loss Monitor",
+            "dialog_input_title": "Input Box",
+            "dialog_input_test": "Enter Packet Loss Sampling Interval Value (indicating the interval is the number of lines in stats)",
+            "dialog_open_file": "Select File"
+        },
+        "analysis_plot_pic": {
+            "title_loss_packet_label": "Packet Loss Change",
+            "title_error_tip_label": "Error Information",
+            "title_cfg_tip_label": "Main Information in Configuration File",
+            "title_loss_interval": "Sampling Interval",
+            "title_bytes_retransmit": "Bytes Retransmit Packet Loss Analysis",
+            "xlabel_bytes_retransmit": "Stats Line Interval",
+            "ylabel_bytes_retransmit": "Change Amount",
+            "label_bytes_retransmit": "Change Amount",
+            "title_extruder": "Extruder Temperature",
+            "xlabel_extruder": "Stats Line Interval",
+            "ylabel_extruder": "Temperature",
+            "label_extruder": "Temperature",
+            "label_extruder_target": "Target Temperature",
+            "title_bed": "Bed Temperature",
+            "xlabel_bed": "Stats Line Interval",
+            "ylabel_bed": "Temperature",
+            "label_bed": "Temperature",
+            "label_bed_target": "Target Temperature"
+        },
+        "error_tip": {
+            "Err_FileNotFoundError": "File Not Found",
+            "Err_CfgNotFoundError": "Configuration Not Found",
+            "Err_NotOpenLog": "Log File Not Opened"
         }
     },
     "zh": {

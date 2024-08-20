@@ -65,7 +65,6 @@ class GlobalComm:
         return GlobalComm.language_json[GlobalComm.language][sub_key_str][obj_str]
 
     @staticmethod
-    #!!! todo, throws an inevitable exception if the configuration file does not exist
     def load_json_cfg():
         result = False
         try:

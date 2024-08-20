@@ -263,6 +263,7 @@ class ControlPanel(QWidget):
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
 
+                # Todo This part of the page is updated and moved elsewhere
                 self.file_title_label.setText(self.file_path.name)
 
                 # Create and start analysis thread
@@ -291,7 +292,7 @@ class ControlPanel(QWidget):
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
 
-                # todo 这部分的页面更新清理掉到别处
+                # Todo This part of the page is updated and moved elsewhere
                 self.file_title_label.setText(self.file_path.name)
                 self.cfg_main_edit.setPlainText(
                     self.model.output_main_cfg_info(self.log, self.file_update)

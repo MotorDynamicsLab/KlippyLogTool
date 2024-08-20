@@ -156,9 +156,7 @@ class MainPanel(QMainWindow):
             self.central_widget.set_analysis_intervel(int(text))
 
     def show_about_dialog(self):
-        about_text = GlobalComm.get_langdic_val(
-            "view", "about_text"
-        )  # todo, 进一步处理关于信息
+        about_text = GlobalComm.get_langdic_val("view", "about_text")
         QMessageBox.information(
             self,
             GlobalComm.get_langdic_val("view", "dialog_about_title"),
