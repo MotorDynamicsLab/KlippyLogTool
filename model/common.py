@@ -67,6 +67,7 @@ class GlobalComm:
     @staticmethod
     #!!! todo, throws an inevitable exception if the configuration file does not exist
     def load_json_cfg():
+        result = False
         try:
             with open("cfg/settings.json", "r", encoding="utf-8") as f:
                 GlobalComm.setting_json = json.load(f)
@@ -75,10 +76,13 @@ class GlobalComm:
                 GlobalComm.language_json = json.load(f)
                 GlobalComm.language = GlobalComm.setting_json["language"]
 
-        except FileNotFoundError:
-            return "global json is not exist"  # Default to English
+            result = True
         except Exception as e:
-            print(f"其他错误: {e}")
+            error = f"exception def load_json_cfg:  {e}"
+            print(error)
+            Utilities.show_error_msg(error)
+        finally:
+            return result
 
     @staticmethod
     def set_cur_language(language):

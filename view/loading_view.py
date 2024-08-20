@@ -1,16 +1,11 @@
 from PyQt5.QtWidgets import (
-    QWidget,
-    QGridLayout,
-    QPushButton,
     QVBoxLayout,
-    QTextEdit,
     QLabel,
-    QSizePolicy,
     QFrame,
 )
 
 from PyQt5.QtGui import QMovie
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtCore import Qt
 
 from model.common import GlobalComm
 
@@ -28,7 +23,9 @@ class LoadingPanel:
 
         self.loading_label = QLabel(self.parent)
         self.loading_label.setVisible(False)  # Initially hidden
-        self.loading_movie = QMovie(GlobalComm.setting_json["loading_gif"])  # Update with the correct path
+        self.loading_movie = QMovie(
+            GlobalComm.setting_json["loading_gif"]
+        )  # Update with the correct path
         self.loading_label.setMovie(self.loading_movie)
 
         # Add loading animation to overlay

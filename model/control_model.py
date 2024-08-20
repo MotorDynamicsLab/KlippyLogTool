@@ -91,6 +91,21 @@ class ControlModel:
         else:
             self.output_cfg(log)
 
+    def print_count(self, path):
+        target_strings = [
+            GlobalComm.setting_json["starting_sd_print"],
+            GlobalComm.setting_json["finish_sd_print"],
+        ]
+
+        counts = {target: 0 for target in target_strings}
+
+        with open(path, "r", encoding="utf-8") as file:
+            for line in file:
+                for target in target_strings:
+                    counts[target] += line.count(target)
+
+        return counts
+
     def update_current_log(self, cur_file_path, cur_newest_path):
         log = ""
         if cur_file_path != cur_newest_path:

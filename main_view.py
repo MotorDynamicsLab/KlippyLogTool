@@ -16,14 +16,16 @@ from view.control_view import ControlPanel
 
 
 class MainPanel(QMainWindow):
-    ### 界面初始化
     def __init__(self):
         super().__init__()
 
-        GlobalComm.load_json_cfg()
+        result = GlobalComm.load_json_cfg()
+        if not result:
+            MainPanel.exit_app()
+
         self.load_current_languag()
 
-        # 主框架初始化
+        # Main frame initialization
         self.setWindowTitle(GlobalComm.get_langdic_val("view", "title"))
         # self.showMaximized()
         self.resize(800, 800)
@@ -39,43 +41,42 @@ class MainPanel(QMainWindow):
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu(GlobalComm.get_langdic_val("view", "file_menu"))
 
-        # 文件菜单 #
-        action = QAction(
-            GlobalComm.get_langdic_val("view", "file_menu_mid_result"), self
-        )
-        action.triggered.connect(self.save_result)
-        file_menu.addAction(action)
-
-        # 创建保存配置文件
-        action = QAction(
-            GlobalComm.get_langdic_val("view", "file_menu_klipper_cfg"), self
-        )
-        action.triggered.connect(self.open_cfg_file)
-        file_menu.addAction(action)
-
-        # 打开当前log
+        # File menu #
+        # Open the current log
         action = QAction(
             GlobalComm.get_langdic_val("view", "file_menu_klipper_log"), self
         )
         action.triggered.connect(self.open_log_file)
         file_menu.addAction(action)
 
-        # 打开当前的stats文件
+        # Create and save configuration files
+        action = QAction(
+            GlobalComm.get_langdic_val("view", "file_menu_klipper_cfg"), self
+        )
+        action.triggered.connect(self.open_cfg_file)
+        file_menu.addAction(action)
+
+        # Open the current stats file
         action = QAction(
             GlobalComm.get_langdic_val("view", "file_menu_stats_log"), self
         )
         action.triggered.connect(self.open_stats_file)
         file_menu.addAction(action)
 
-        # 退出应用
-        action = QAction(GlobalComm.get_langdic_val("view", "file_menu_exit"), self)
-        action.triggered.connect(self.exit_app)
+        # Check printed
+        action = QAction(GlobalComm.get_langdic_val("view", "file_check_print"), self)
+        action.triggered.connect(self.print_check)
         file_menu.addAction(action)
 
-        # 配置菜单 #
+        # Exit application
+        action = QAction(GlobalComm.get_langdic_val("view", "file_menu_exit"), self)
+        action.triggered.connect(MainPanel.exit_app)
+        file_menu.addAction(action)
+
+        # Configuration menu #
         set_menu = menu_bar.addMenu(GlobalComm.get_langdic_val("view", "set_menu"))
 
-        # 语言转换
+        # Language conversion
         language_menu = set_menu.addMenu(
             GlobalComm.get_langdic_val("view", "set_menu_language")
         )
@@ -97,17 +98,17 @@ class MainPanel(QMainWindow):
         self.chinese_action.triggered.connect(self.set_language_zh)
         language_menu.addAction(self.chinese_action)
 
-        # 丢包间隔
+        # Packet loss interval
         action = QAction(GlobalComm.get_langdic_val("view", "set_menu_loss_set"), self)
         action.triggered.connect(self.show_input_dialog)
         set_menu.addAction(action)
 
-        # 关于 #
+        # about #
         about_action = QAction(GlobalComm.get_langdic_val("view", "about"), self)
         about_action.triggered.connect(self.show_about_dialog)
         menu_bar.addAction(about_action)
 
-    ### 功能函数
+    ### Function function
     def update_language_ui(self):
         os.execl(sys.executable, sys.executable, *sys.argv)
 
@@ -125,7 +126,7 @@ class MainPanel(QMainWindow):
         else:
             self.language = GlobalComm.setting_json["language"]
 
-    ### 事件
+    ### event
     def set_language_en(self):
         self.language = "en"
         self.chinese_action.setChecked(False)
@@ -156,7 +157,7 @@ class MainPanel(QMainWindow):
 
     def show_about_dialog(self):
         about_text = GlobalComm.get_langdic_val(
-            "view", "dialog_about_title"
+            "view", "about_text"
         )  # todo, 进一步处理关于信息
         QMessageBox.information(
             self,
@@ -164,9 +165,15 @@ class MainPanel(QMainWindow):
             about_text,
         )
 
-    def save_result(self):
-        self.central_widget.save_some_files(True)
-        Utilities.open_file_or_dir(GlobalComm.setting_json["dir_out"])
+    def print_check(self):
+        counts = self.central_widget.get_print_cnt()
+        result = ", ".join([f"'{target}': {count}" for target, count in counts.items()])
+        print(result)
+        QMessageBox.information(
+            self,
+            GlobalComm.get_langdic_val("view", "dialog_about_title"),
+            result,
+        )
 
     def open_log_file(self):
         Utilities.open_file_or_dir(self.central_widget.get_current_file_path())
@@ -179,11 +186,13 @@ class MainPanel(QMainWindow):
         self.central_widget.save_some_files()
         Utilities.open_file_or_dir(GlobalComm.setting_json["klipper_cfg"])
 
-    def exit_app(self):
+    @staticmethod
+    def exit_app():
         QApplication.quit()
 
+    # Overload the closeEvent method
     def closeEvent(self, event):
-        self.central_widget.stop_thread()  # 在关闭窗口时停止线程
+        self.central_widget.stop_thread()  # Stop thread when closing window
         event.accept()
 
 

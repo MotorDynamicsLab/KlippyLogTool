@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 import re
 from collections import defaultdict
 import numpy as np
-from model.common import GlobalComm
+from model.common import GlobalComm, Utilities
 
 
 class LogKlipper:
@@ -57,38 +57,35 @@ class LogStats:
         self.log = log
 
     def __generate_stats_list(self):
-        # 使用生成器表达式来节省内存
         self.stats_list = [
             line for line in self.log.splitlines() if line.startswith("Stats")
         ]
 
     def __parse_stats_key_info(self, stats_string):
-        # 分割字符串
+        # split string
         parts = stats_string.split()
 
-        # 初始化结果字典
+        # Initialize result dictionary
         result = {}
-
-        # 当前处理的模块名
         current_module = None
 
         for part in parts:
             if ":" in part:
-                # 这是一个模块名或键值对
+                # This is a module name or key-value pair
                 if "=" not in part:
-                    # 这是一个模块名
+                    # This is a module name
                     current_module = part.rstrip(":")
                     if current_module not in result:
                         result[current_module] = {}
                 else:
-                    # 这是一个键值对
+                    # This is a key-value pair
                     key, value = part.split("=")
                     if current_module:
                         result[current_module][key] = value
                     else:
                         result[key] = value
             else:
-                # 这是一个键值对
+                # This is a key-value pair
                 if "=" in part:
                     key, value = part.split("=")
                     if current_module:
@@ -97,7 +94,7 @@ class LogStats:
                         result[key] = value
                 else:
                     pass
-                    # 处理没有等号的部分
+                    # Process the part without an equal sign
                     # print(f"Warning: Skipping invalid part '{part}'")
 
         return result
@@ -206,7 +203,9 @@ class LogStats:
             return list_retransmit_mcus, mcu_list
 
         except Exception as e:
-            print("exception def get_bytes_retransmit_incremental_list: ", e)
+            error = f"exception def get_bytes_retransmit_incremental_list:  {e}"
+            print(error)
+            Utilities.show_error_msg(error)
 
     def get_target_temp_list(self, interval, list_dicts):
         try:
@@ -243,4 +242,6 @@ class LogStats:
             return (extruder_temp_list, bed_temp_list)
 
         except Exception as e:
-            print("异常：", e)
+            error = f"Exception def get_target_temp_list: {e}"
+            print(error)
+            Utilities.show_error_msg(error)

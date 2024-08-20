@@ -6,7 +6,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 class PlotCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        font_path = "C:/Windows/Fonts/simhei.ttf"  # todo,放置到文件中读取
+        font_path = "C:/Windows/Fonts/simhei.ttf"  # Todo, placed in setting to read
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         super().__init__(self.fig)
         self.prop = fm.FontProperties(fname=font_path)
@@ -33,7 +33,7 @@ class PlotCanvas(FigureCanvas):
     def set_line_visible(self, label, visible):
         for ax, line in self.lines:
             if line.get_gid() == label:
-                line.set_visible(visible)  # 切换线条的可见性
+                line.set_visible(visible)  # Toggle line visibility
                 break
         self.draw()
 

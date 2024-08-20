@@ -27,7 +27,7 @@ class ControlPanel(QWidget):
         super(ControlPanel, self).__init__(parent)
 
         self.subplot_data = []
-        self.file_paths = ["logs/klipper.log"]
+        self.file_paths = ["logs/klippy.log"]
         self.cur_file_path = ""
         self.log = ""
 
@@ -215,6 +215,9 @@ class ControlPanel(QWidget):
     def save_some_files(self, only_cfg=False):
         self.model.save_files(self.file_paths[self.file_index], only_cfg)
 
+    def get_print_cnt(self):
+        return self.model.print_count(self.file_paths[self.file_index])
+
     def set_analysis_intervel(self, intervel):
         self.model.set_intervel(intervel)
 
@@ -245,7 +248,7 @@ class ControlPanel(QWidget):
             self.file_index = 0
 
     def stop_thread(self):
-        if self.analysis_thread.isRunning():
+        if hasattr(self, "analysis_thread") and self.analysis_thread.isRunning():
             self.analysis_thread.stop()
 
     def comprehensive_analysis(self):

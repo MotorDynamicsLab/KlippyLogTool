@@ -25,12 +25,12 @@
             "file_menu_klipper_cfg": "打开klipper.cfg",
             "file_menu_klipper_log": "打开当前log",
             "file_menu_stats_log": "打开stats文件",
+            "file_check_print": "检查打印次数",
             "file_menu_exit": "退出",
             
             "check_title": "检测",
             "connect_check": "是否连接过",
             "printer_check": "是否打印过",
-
 
             "set_menu": "设置",
             "set_menu_language": "语言",
@@ -40,7 +40,7 @@
 
             "about": "关于",
             "dialog_about_title": "关于",
-            "about_text": "\n版本:{0}\n日期: {1}\n哈希: {2}\n\n版权所有 © 2023-{3} 蓝德欧智能控制技术有限公司。保留所有权利。",
+            "about_text": "\n版权所有 © 2023-{3} 蓝德欧智能控制技术有限公司。保留所有权利。",
 
             
             "btn_open_log": "打开log", 

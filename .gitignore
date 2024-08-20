@@ -5,3 +5,4 @@
 /out
 /view/__pycache__
 /.vscode/*
+/__pycache__/*.pyc

@@ -5,6 +5,8 @@
     "loading_gif": "cfg/loading.gif",
     "klipper_cfg": "out/klipper.cfg",
     "stats_log": "out/stats.txt",
+    "finish_sd_print": "Finished SD card print",
+    "starting_sd_print": "Starting SD card print",
     "dir_out": "out",
     "dir_cfg": "cfg",
     "key": "3"
