@@ -1,3 +1,10 @@
+'''
+@File    :   main_view.py
+@Time    :   2024/08/20 23:27:25
+@Desc    :   Describes the basic framework of the main interface, excluding the core display part
+'''
+
+
 import locale
 import os
 import sys

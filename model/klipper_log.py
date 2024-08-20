@@ -1,3 +1,10 @@
+'''
+@File    :   klipper_log.py
+@Time    :   2024/08/21 
+@Desc    :   Extract relevant information from the parsing log
+'''
+
+
 from concurrent.futures import ThreadPoolExecutor
 import re
 from collections import defaultdict
@@ -6,6 +13,8 @@ from model.common import GlobalComm, Utilities
 
 
 class LogKlipper:
+    """Classes for klipper configuration processing in the log
+    """
     def __init__(self, log) -> None:
         self.log = log
 
@@ -53,6 +62,8 @@ class LogKlipper:
 
 
 class LogStats:
+    """Class for processing the stats row fields in the log
+    """
     def __init__(self, log) -> None:
         self.log = log
 
@@ -62,6 +73,14 @@ class LogStats:
         ]
 
     def __parse_stats_key_info(self, stats_string):
+        """Convert the fields in the stats row to dictionary form and store them
+
+        Args:
+            stats_string (str): Stats row string
+
+        Returns:
+            dict: Dictionary of fields corresponding to the Stats row
+        """
         # split string
         parts = stats_string.split()
 
@@ -128,6 +147,15 @@ class LogStats:
         return mcu
 
     def get_bytes_retransmit_incremental_list(self, interval, list_dicts):
+        """Get the change in bytes_retransmit field in all stats rows
+
+        Args:
+            interval (int): number of row intervals
+            list_dicts (dict): Dictionary storing all stats key fields
+
+        Returns:
+            (list,list): Returns the change in the bytes_retransmit value corresponding to the mcu list and the mcu list
+        """
         try:
             i = 0
             is_reset = False
@@ -171,7 +199,7 @@ class LogStats:
                         else:
                             temp_list.append(max_val[mcu] - min_val[mcu])
 
-                        # debug
+                        # DEBUG
                         # if mcu == "nhk":
                         #     print(
                         #         mcu,
@@ -208,6 +236,15 @@ class LogStats:
             Utilities.show_error_msg(error)
 
     def get_target_temp_list(self, interval, list_dicts):
+        """Get the list of heater_bed and extruder temperature values
+
+        Args:
+            interval (int): Sampling interval
+            list_dicts (dict): Dictionary storing all stats key fields
+
+        Returns:
+            (list,list): (extruder_temp_list, bed_temp_list)
+        """
         try:
             extruder_temp_list = []
             bed_temp_list = []

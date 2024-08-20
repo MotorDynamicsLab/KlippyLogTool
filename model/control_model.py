@@ -1,3 +1,10 @@
+'''
+@File    :   control_model.py
+@Time    :   2024/08/21
+@Desc    :   Process module data needed for the control view interface
+'''
+
+
 from concurrent.futures import ThreadPoolExecutor
 import time
 from model.common import GlobalComm, Utilities
@@ -6,7 +13,7 @@ from model.parse import PaserLog
 
 class ControlModel:
     def __init__(self):
-        self.intervel = int(GlobalComm.setting_json["loss_interval_set"])
+        self.intervel = int(GlobalComm.setting_json["loss_interval_set"]) #default value
         self.mcu_info = ""
 
     def get_error_str(self, log):
@@ -40,6 +47,16 @@ class ControlModel:
         return []
 
     def output_main_cfg_info(self, log, file_update):
+        """Get the main information in klipper.cfg
+           -> Currently obtain mcu related information
+
+        Args:
+            log (str): klippy.log information
+            file_update (bool): Select whether the file has changed
+
+        Returns:
+            str: mcu related information
+        """
         if file_update or self.mcu_info == "":
             cfg = self.get_cfg_info(log)
             self.mcu_info = ""
@@ -47,15 +64,15 @@ class ControlModel:
             capture = False
             lines = cfg.split("\n")
             for line in lines:
-                # 检查是否是[mcu开头的行
+                #Check if it is a line starting with [mcu
                 if line.startswith("[mcu") or line.startswith("[beacon]"):
                     capture = True
 
-                # 如果在[mcu和serial之间，捕获行
+                #If between [mcu and serial, capture line
                 if capture:
                     extracted_lines.append(line)
 
-                # 检查是否是serial开头的行
+                #Check if it is a line starting with serial
                 if "serial" in line or "canbus_uuid" in line:
                     capture = False
             self.mcu_info = "\n".join(extracted_lines)

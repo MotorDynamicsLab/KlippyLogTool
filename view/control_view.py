@@ -1,3 +1,10 @@
+'''
+@File    :   control_view.py
+@Time    :   2024/08/21
+@Desc    :   Graphical interface
+'''
+
+
 from pathlib import Path
 import time
 from PyQt5.QtWidgets import (
@@ -60,7 +67,7 @@ class ControlPanel(QWidget):
         loss_packet_analysis_btn.clicked.connect(self.loss_packet_analysis)
         grid_layout.addWidget(loss_packet_analysis_btn, 1, 1)
 
-        # todo
+        # TODO
         loss_packet_monitor_btn = QPushButton(
             GlobalComm.get_langdic_val("view", "btn_loss_packet_monitor")
         )
@@ -263,7 +270,7 @@ class ControlPanel(QWidget):
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
 
-                # Todo This part of the page is updated and moved elsewhere
+                # TODO This part of the page is updated and moved elsewhere
                 self.file_title_label.setText(self.file_path.name)
 
                 # Create and start analysis thread
@@ -292,7 +299,7 @@ class ControlPanel(QWidget):
             if self.plot_canvas is not None:
                 self.plot_canvas.clear(self.subplot_data)
 
-                # Todo This part of the page is updated and moved elsewhere
+                # TODO This part of the page is updated and moved elsewhere
                 self.file_title_label.setText(self.file_path.name)
                 self.cfg_main_edit.setPlainText(
                     self.model.output_main_cfg_info(self.log, self.file_update)
@@ -328,7 +335,7 @@ class ControlPanel(QWidget):
         Utilities.show_error_msg(f"分析错误: {error}")
         self.loading_view.stop_loading_gif()
 
-    # todo
+    # TODO
     def loss_packet_monitor(self):
         pass
 

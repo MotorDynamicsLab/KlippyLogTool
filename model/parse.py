@@ -1,3 +1,10 @@
+'''
+@File    :   parse.py
+@Time    :   2024/08/20
+@Desc    :  Further process the log information to obtain the information required by the interface
+'''
+
+
 import random
 from model.common import GlobalComm, RandomColor, Utilities
 from model.klipper_log import LogKlipper, LogStats
@@ -9,7 +16,8 @@ class PaserLog:
         self.cfg = LogKlipper(log)
         self.stats = LogStats(log)
 
-    # Generate analysis report
+    """Generate analysis report
+    """
     def paser_cfg(self):
         cfg_str = self.cfg.extract_newest_config()
         Utilities.save_to_file(cfg_str, save_path="out/klipper.cfg")
@@ -37,7 +45,8 @@ class PaserLog:
         list_dicts = self.stats.get_stats_dicts()
         return self.stats.get_mcu_list(list_dicts)
 
-    # Analyze and generate charts
+    """Analyze and generate charts
+    """
     def analysis_bytes_retransmit(self, intervel):
         list_dicts = self.stats.get_stats_dicts()
         list_retransmit, mcu_list = self.stats.get_bytes_retransmit_incremental_list(

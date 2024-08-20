@@ -2,8 +2,8 @@ from PyQt5.QtCore import QThread, pyqtSignal, Qt
 
 
 class AnalysisThread(QThread):
-    analysis_complete = pyqtSignal(list, str, list)  # 信号用于传递结果
-    error_occurred = pyqtSignal(str)  # 信号用于传递错误信息
+    analysis_complete = pyqtSignal(list, str, list)  
+    error_occurred = pyqtSignal(str)  
 
     def __init__(self, log, view_model, task_type, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,6 +28,6 @@ class AnalysisThread(QThread):
             mcu_list = self.view_model.get_mcu_list(self.log)
             self.analysis_complete.emit(
                 result, self.task_type, mcu_list
-            )  # 发射完成信号
+            )  #Transmit completion signal
         except Exception as e:
-            self.error_occurred.emit(str(e))  # 发射错误信号
+            self.error_occurred.emit(str(e))  #Send error signal

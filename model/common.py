@@ -12,22 +12,22 @@ import inspect
 class RandomColor:
     def __init__(self):
         self.used_hues = []
-        self.hue_step = 30  # 每次生成颜色之间的最小色调差异
+        self.hue_step = 30  #Minimal hue difference between each generated color
 
     def random_color(self):
         while True:
-            # 生成随机的 HSL 颜色
+            #Generate random HSL colors
             h = random.randint(0, 360)
             s = 100
             l = 50
 
-            # 检查颜色的色调是否已经被使用过
+            #Check if the color's hue has already been used
             if all(abs(h - used_hue) >= self.hue_step for used_hue in self.used_hues):
                 self.used_hues.append(h)
                 return self.hsl_to_rgb(h, s, l)
 
     def hsl_to_rgb(self, h, s, l):
-        # h, s, l 都在 [0, 100] 范围内
+        #h, s, l are all in the range [0, 100]
         s /= 100
         l /= 100
         c = (1 - abs(2 * l - 1)) * s

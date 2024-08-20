@@ -3,10 +3,9 @@ from matplotlib.figure import Figure
 import matplotlib.font_manager as fm
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-
 class PlotCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        font_path = "C:/Windows/Fonts/simhei.ttf"  # Todo, placed in setting to read
+        font_path = "C:/Windows/Fonts/simhei.ttf"  # TODO, placed in setting to read
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         super().__init__(self.fig)
         self.prop = fm.FontProperties(fname=font_path)
