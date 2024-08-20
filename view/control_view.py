@@ -27,7 +27,7 @@ class ControlPanel(QWidget):
         super(ControlPanel, self).__init__(parent)
 
         self.subplot_data = []
-        self.file_paths = ["logs/Jango.log"]
+        self.file_paths = ["logs/klipper.log"]
         self.cur_file_path = ""
         self.log = ""
 
@@ -208,6 +208,9 @@ class ControlPanel(QWidget):
             widget = self.container_layout.itemAt(i).widget()
             if widget is not None:
                 widget.deleteLater()
+
+    def get_current_file_path(self):
+        return self.cur_file_path
 
     def save_some_files(self, only_cfg=False):
         self.model.save_files(self.file_paths[self.file_index], only_cfg)

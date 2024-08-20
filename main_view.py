@@ -53,6 +53,20 @@ class MainPanel(QMainWindow):
         action.triggered.connect(self.open_cfg_file)
         file_menu.addAction(action)
 
+        # 打开当前log
+        action = QAction(
+            GlobalComm.get_langdic_val("view", "file_menu_klipper_log"), self
+        )
+        action.triggered.connect(self.open_log_file)
+        file_menu.addAction(action)
+
+        # 打开当前的stats文件
+        action = QAction(
+            GlobalComm.get_langdic_val("view", "file_menu_stats_log"), self
+        )
+        action.triggered.connect(self.open_stats_file)
+        file_menu.addAction(action)
+
         # 退出应用
         action = QAction(GlobalComm.get_langdic_val("view", "file_menu_exit"), self)
         action.triggered.connect(self.exit_app)
@@ -153,6 +167,13 @@ class MainPanel(QMainWindow):
     def save_result(self):
         self.central_widget.save_some_files(True)
         Utilities.open_file_or_dir(GlobalComm.setting_json["dir_out"])
+
+    def open_log_file(self):
+        Utilities.open_file_or_dir(self.central_widget.get_current_file_path())
+
+    def open_stats_file(self):
+        self.central_widget.save_some_files(True)
+        Utilities.open_file_or_dir(GlobalComm.setting_json["stats_log"])
 
     def open_cfg_file(self):
         self.central_widget.save_some_files()

@@ -39,7 +39,6 @@ class PaserLog:
 
     # Analyze and generate charts
     def analysis_bytes_retransmit(self, intervel):
-        # todo 分析文本 , 以mcu分离多个变化线
         list_dicts = self.stats.get_stats_dicts()
         list_retransmit, mcu_list = self.stats.get_bytes_retransmit_incremental_list(
             intervel, list_dicts
@@ -48,10 +47,12 @@ class PaserLog:
         loss_str = (
             GlobalComm.get_langdic_val("analysis_plot_pic", "title_bytes_retransmit")
             + "("
+            + GlobalComm.get_langdic_val("analysis_plot_pic", "title_loss_interval")
+            + ": "
             + str(intervel)
             + ")"
         )
-        # 产生图数据
+        # Generate graph data
         plot_data = [
             {  # Common part
                 "subplots": (2, 1, 1),

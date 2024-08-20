@@ -133,13 +133,21 @@ class LogStats:
     def get_bytes_retransmit_incremental_list(self, interval, list_dicts):
         try:
             i = 0
+            is_reset = False
             list_retransmit_mcus = []
             mcu_list = self.get_mcu_list(list_dicts)
             cur_val = {}
             max_val = {}
             min_val = {}
             for mcu in mcu_list:
-                cur_val[mcu] = max_val[mcu] = min_val[mcu] = 0
+                try:
+                    if len(list_dicts) > 0:
+                        dicts = list_dicts[0]
+                        cur_val[mcu] = max_val[mcu] = min_val[mcu] = int(
+                            dicts[mcu]["bytes_retransmit"]
+                        )
+                except Exception:
+                    cur_val[mcu] = max_val[mcu] = min_val[mcu] = 0
 
             for dicts in list_dicts:
                 for mcu in mcu_list:
@@ -151,6 +159,7 @@ class LogStats:
 
                     if cur_val[mcu] < min_val[mcu]:
                         min_val[mcu] = cur_val[mcu]
+                        is_reset = True
 
                     if cur_val[mcu] > max_val[mcu]:
                         max_val[mcu] = cur_val[mcu]
@@ -160,10 +169,25 @@ class LogStats:
                     i = 0
                     temp_list = []
                     for mcu in mcu_list:
-                        temp_list.append(max_val[mcu] - min_val[mcu])
+                        if is_reset:
+                            temp_list.append(min_val[mcu] - max_val[mcu])
+                        else:
+                            temp_list.append(max_val[mcu] - min_val[mcu])
 
+                        # debug
+                        # if mcu == "nhk":
+                        #     print(
+                        #         mcu,
+                        #         ":",
+                        #         min_val[mcu],
+                        #         max_val[mcu],
+                        #         cur_val[mcu],
+                        #         max_val[mcu] - min_val[mcu],
+                        #     )
                         # Starting from the last result
                         max_val[mcu] = min_val[mcu] = cur_val[mcu]
+
+                    is_reset = False
                     list_retransmit_mcus.append(temp_list)
 
             if len(list_dicts) % interval != 0:
@@ -173,6 +197,7 @@ class LogStats:
                         temp_list.append(max_val[mcu] - min_val[mcu])
                     except Exception:
                         pass
+
                     # Starting from the last result
                     max_val[mcu] = min_val[mcu] = cur_val[mcu]
                 list_retransmit_mcus.append(temp_list)
@@ -181,7 +206,7 @@ class LogStats:
             return list_retransmit_mcus, mcu_list
 
         except Exception as e:
-            print("exception def get_bytes_retransmit_incremental_list：", e)
+            print("exception def get_bytes_retransmit_incremental_list: ", e)
 
     def get_target_temp_list(self, interval, list_dicts):
         try:

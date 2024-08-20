@@ -23,6 +23,8 @@
             "file_menu": "文件",
             "file_menu_mid_result": "保存并打开out文件夹",
             "file_menu_klipper_cfg": "打开klipper.cfg",
+            "file_menu_klipper_log": "打开当前log",
+            "file_menu_stats_log": "打开stats文件",
             "file_menu_exit": "退出",
             
             "check_title": "检测",
@@ -57,6 +59,7 @@
             "title_loss_packet_label": "丢包变化",
             "title_error_tip_label": "错误信息",
             "title_cfg_tip_label": "配置文件中主要信息",
+            "title_loss_interval": "采样间隔",
 
             "title_bytes_retransmit": "bytes retransmit丢包分析",
             "xlabel_bytes_retransmit": "stats行间隔",
