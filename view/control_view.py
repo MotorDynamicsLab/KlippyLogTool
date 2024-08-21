@@ -1,12 +1,10 @@
-'''
+"""
 @File    :   control_view.py
 @Time    :   2024/08/21
 @Desc    :   Graphical interface
-'''
-
+"""
 
 from pathlib import Path
-import time
 from PyQt5.QtWidgets import (
     QWidget,
     QGridLayout,
@@ -18,11 +16,9 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QHBoxLayout,
 )
-from PyQt5.QtGui import QMovie
 from model.analysis_thread import AnalysisThread
 from model.common import GlobalComm, Utilities
 from model.control_model import ControlModel
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
 
 from view.loading_view import LoadingPanel
 from view.plot_canvas import PlotCanvas
