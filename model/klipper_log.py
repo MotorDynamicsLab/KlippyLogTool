@@ -1,9 +1,8 @@
-'''
+"""
 @File    :   klipper_log.py
 @Time    :   2024/08/21 
 @Desc    :   Extract relevant information from the parsing log
-'''
-
+"""
 
 from concurrent.futures import ThreadPoolExecutor
 import re
@@ -13,8 +12,8 @@ from model.common import GlobalComm, Utilities
 
 
 class LogKlipper:
-    """Classes for klipper configuration processing in the log
-    """
+    """Classes for klipper configuration processing in the log"""
+
     def __init__(self, log) -> None:
         self.log = log
 
@@ -32,7 +31,12 @@ class LogKlipper:
 
     def get_error_str(self):
         lines = self.log.split("\n")
-        error_lines = [line for line in lines if "Got " in line]
+        error_lines = []
+        for line in lines:
+            if "Timeout with MCU" in line:
+                error_lines.append(line)
+            if "b'Got " in line:
+                error_lines.append(line)
         return "\n".join(error_lines)
 
     def get_stats_shucdown_info(self):
@@ -62,8 +66,8 @@ class LogKlipper:
 
 
 class LogStats:
-    """Class for processing the stats row fields in the log
-    """
+    """Class for processing the stats row fields in the log"""
+
     def __init__(self, log) -> None:
         self.log = log
 
