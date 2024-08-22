@@ -7,3 +7,4 @@
 /.vscode/*
 /__pycache__/*.pyc
 /output/分析klippylog工具
+/output
