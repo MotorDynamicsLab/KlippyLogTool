@@ -32,11 +32,11 @@ class LogKlipper:
     def get_error_str(self):
         lines = self.log.split("\n")
         error_lines = []
+        error_key_list = GlobalComm.setting_json["error_ref"]
         for line in lines:
-            if "Timeout with MCU" in line:
-                error_lines.append(line)
-            if "b'Got " in line:
-                error_lines.append(line)
+            for key in error_key_list:
+                if key in line:
+                    error_lines.append(line)
         return "\n".join(error_lines)
 
     def get_stats_shucdown_info(self):

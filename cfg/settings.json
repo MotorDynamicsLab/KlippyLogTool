@@ -9,5 +9,6 @@
     "starting_sd_print": "Starting SD card print",
     "dir_out": "out",
     "dir_cfg": "cfg",
-    "key": "3"
+    "key": "3",
+    "error_ref": ["Timeout with MCU", "b'Got ", "Error during"]
 }
