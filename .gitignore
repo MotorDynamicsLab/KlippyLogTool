@@ -1,4 +1,5 @@
 /out/*
+/.venv/*
 /logs/*
 /model/__pycache__
 /.tool

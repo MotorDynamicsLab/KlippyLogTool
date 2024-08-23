@@ -258,10 +258,10 @@ class LogStats:
                 if "heater_bed" in dicts and "extruder" in dicts:
                     val_list.append(
                         (
-                            float(dicts["heater_bed"]["target"]),
-                            float(dicts["heater_bed"]["temp"]),
                             float(dicts["extruder"]["target"]),
                             float(dicts["extruder"]["temp"]),
+                            float(dicts["heater_bed"]["target"]),
+                            float(dicts["heater_bed"]["temp"]),
                         )
                     )
 
