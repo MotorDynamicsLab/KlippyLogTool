@@ -2,109 +2,125 @@
 
 
 
-# 安装环境
+# Installation instructions
 
 
 
-**python版本：3.9.0**
+## python environment installation
 
 
 
-**安装依赖 ：执行 pip install -r requirements.txt 来安装所依赖的组件包**
+**python installation: Download version 3.9.0**.
 
+**Dependency installation: run pip install -r requirements.txt to install dependent packages**.
 
+**Python run main_view.py to run it **.
 
 
 
-# 基本操作
 
-## 设置区间
 
-可以设置分析的x轴的间隔区间，**不同的区间分析结果会不一样，如果设置区间过大，可能看不到一些波形细节**
+## Run it directly (you can download the release file directly to run it)
 
-![image-20240822102753275](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/image-20240822102753275.png)
 
 
+Unzip the zip file and run AnalyseLog.exe directly.
 
-## 选择隐藏/显示线
 
 
 
-点击途中框内的目标，可选择隐藏/显示目标线段
 
-![image-20240822103111875](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/image-20240822103111875.png)
+# Basic operations
 
 
 
-# 相关问题
+## Set analysis interval
 
+You can set the intervals of the x-axis to be analysed. **The results will be different for different intervals, and if you set the interval too large, you may not be able to see some details of the waveforms.**
 
+![image-20240902143143741](.\img\image-20240902143143741.png)
 
 
 
-## x轴的含义
+## Select Hide/Show Line
 
-x轴是stats文件中的行间隔
 
 
+Click on the target in the way box to choose to hide/show the target line segments
 
-![image-20240822101753771](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/image-20240822101753771.png)
+![image-20240902144944322](.\img\image-20240902144944322.png)
 
 
 
+# Related issues
 
 
-它的值*采样间隔 为stats文件所对应的行数。如下图 50`*`100=5000，即50就是stat文件中的第5000行
 
-![image-20240822101903365](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/image-20240822101903365.png)
 
 
+## Meaning of x-axis
 
+The x-axis is the line spacing in the stats file
 
 
 
+![image-20240822101753771](.\img\image-20240822101753771.png)
 
-## 判断断连时刻
 
-类似下图这种尖尖基本就是断连
 
-![image-20240822102636758](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/image-20240822102636758.png)
 
 
+Its value * sampling interval is the number of lines in the stats file. As shown below 100`*`100=5000, i.e. 50 is the 10000th line in the stats file.
 
+![image-20240902143306123](.\img\image-20240902143306123.png)
 
 
-## 分析错误对于图中的那个位置
 
 
 
-点击丢包分析，复制一个错误信息
 
-![Snipaste_2024-08-21_16-17-58](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/Snipaste_2024-08-21_16-17-58.png)![](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/typora-icon2.png)
 
+## Determining the moment of disconnection
 
-打开当前log和stats文件
+A spike like the one in the picture below is basically a break.
 
-![image-20240821162113180](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/image-20240821162113180.png)
+![image-20240902143403815](.\img\image-20240902143403815.png)
 
 
 
 
 
-在log中搜索错误信息，找到错误前的依据stats，并复制
+## Analyse the error for that position in the diagram
 
-![image-20240821162215653](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/image-20240821162215653.png)
 
 
+Click Packet Loss Analysis to copy an error message
 
+![](.\img\image-20240902143424564.png)
 
 
-从stats文件中搜索，找到对应的行数，如下
+Open the current log and stats files
 
-![image-20240821162255476](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/image-20240821162255476.png)
+![image-20240902143442520](.\img\image-20240902143442520.png)
 
 
 
-从而得知566行的位置大概在下图位置附件
 
-![image-20240821162345698](http://tyk-bucket.oss-cn-shenzhen.aliyuncs.com/img/image-20240821162345698.png)
+
+Search for the error message in the log, find the basis stats before the error, and copy the
+
+![image-20240902143528597](.\img\image-20240902143528597.png)
+
+
+
+
+
+Search from the stats file to find the corresponding line as follows
+
+![image-20240902143544132](.\img\image-20240902143544132.png)
+
+
+
+From this, we know that the location of row 9100 is approximately at the following location, as follows (91*100 = 9100)
+
+![image-20240902143631964](.\img\image-20240902143631964.png)
