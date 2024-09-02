@@ -255,29 +255,32 @@ class LogStats:
             val_list = []
 
             for i, dicts in enumerate(list_dicts):
-                if "heater_bed" in dicts and "extruder" in dicts:
-                    val_list.append(
-                        (
-                            float(dicts["extruder"]["target"]),
-                            float(dicts["extruder"]["temp"]),
-                            float(dicts["heater_bed"]["target"]),
-                            float(dicts["heater_bed"]["temp"]),
-                        )
-                    )
+                original_list = []
+                if "extruder" in dicts:
+                    original_list.append(float(dicts["extruder"]["target"]))
+                    original_list.append(float(dicts["extruder"]["temp"]))
+
+                if "heater_bed" in dicts:
+                    original_list.append(float(dicts["heater_bed"]["target"]))
+                    original_list.append(float(dicts["heater_bed"]["temp"]))
+
+                val_list.append(tuple(original_list))
 
                 if (i + 1) % interval == 0:
-                    extruder_temp_list.append(
-                        (
-                            np.min([t[0] for t in val_list]),
-                            np.min([t[1] for t in val_list]),
+                    if "extruder" in dicts:
+                        extruder_temp_list.append(
+                            (
+                                np.min([t[0] for t in val_list]),
+                                np.min([t[1] for t in val_list]),
+                            )
                         )
-                    )
-                    bed_temp_list.append(
-                        (
-                            np.min([t[2] for t in val_list]),
-                            np.min([t[3] for t in val_list]),
+                    if "heater_bed" in dicts:
+                        bed_temp_list.append(
+                            (
+                                np.min([t[2] for t in val_list]),
+                                np.min([t[3] for t in val_list]),
+                            )
                         )
-                    )
                     val_list.clear()  # Clear the list for the next interval
 
             return (extruder_temp_list, bed_temp_list)

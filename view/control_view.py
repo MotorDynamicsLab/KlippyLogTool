@@ -270,6 +270,8 @@ class ControlPanel(QWidget):
                 self.file_title_label.setText(self.file_path.name)
 
                 # Create and start analysis thread
+                # self.model.comprehensive_analysis(self.log)
+
                 self.analysis_thread = AnalysisThread(
                     self.log, self.model, Utilities.get_current_function_name()
                 )

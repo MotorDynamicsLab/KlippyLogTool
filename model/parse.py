@@ -1,9 +1,8 @@
-'''
+"""
 @File    :   parse.py
 @Time    :   2024/08/20
 @Desc    :  Further process the log information to obtain the information required by the interface
-'''
-
+"""
 
 import random
 from model.common import GlobalComm, RandomColor, Utilities
@@ -18,6 +17,7 @@ class PaserLog:
 
     """Generate analysis report
     """
+
     def paser_cfg(self):
         cfg_str = self.cfg.extract_newest_config()
         Utilities.save_to_file(cfg_str, save_path="out/klipper.cfg")
@@ -47,6 +47,7 @@ class PaserLog:
 
     """Analyze and generate charts
     """
+
     def analysis_bytes_retransmit(self, intervel):
         list_dicts = self.stats.get_stats_dicts()
         list_retransmit, mcu_list = self.stats.get_bytes_retransmit_incremental_list(
@@ -96,8 +97,11 @@ class PaserLog:
         # Analyze text
         list_dicts = self.stats.get_stats_dicts()
         extruder_temp_list, _ = self.stats.get_target_temp_list(intervel, list_dicts)
-        target_list = [t[0] for t in extruder_temp_list]
-        temp_list = [t[1] for t in extruder_temp_list]
+        if len(extruder_temp_list) > 0:
+            target_list = [t[0] for t in extruder_temp_list]
+            temp_list = [t[1] for t in extruder_temp_list]
+        else:
+            temp_list = target_list = []
 
         # Generate graph data
         plot_data = [
@@ -138,8 +142,11 @@ class PaserLog:
         # Analyze text
         list_dicts = self.stats.get_stats_dicts()
         _, bed_temp_list = self.stats.get_target_temp_list(intervel, list_dicts)
-        target_list = [t[0] for t in bed_temp_list]
-        temp_list = [t[1] for t in bed_temp_list]
+        if len(bed_temp_list) > 0:
+            target_list = [t[0] for t in bed_temp_list]
+            temp_list = [t[1] for t in bed_temp_list]
+        else:
+            temp_list = target_list = []
 
         # Generate graph data
         plot_data = [
